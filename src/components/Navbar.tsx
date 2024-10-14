@@ -20,11 +20,20 @@ const Navbar: React.FC = () => {
         <Link as={RouterLink} to="/" color="white" mr={4}>
           Home
         </Link>
+        <Link as={RouterLink} to="/market" color="white" mr={4}>
+          Market
+        </Link>
         <Link as={RouterLink} to="/configure" color="white" mr={4}>
           Configure Layout
         </Link>
-        <Link as={RouterLink} to="/generated-zones" color="white">
+        <Link as={RouterLink} to="/generated-zones" color="white" mr={4}>
           Generated Zones
+        </Link>
+        <Link as={RouterLink} to="/login" color="white" mr={4}>
+          Login
+        </Link>
+        <Link as={RouterLink} to="/register" color="white" mr={4}>
+          Register
         </Link>
       </Flex>
     </Box>
