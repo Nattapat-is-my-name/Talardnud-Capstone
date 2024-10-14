@@ -17,6 +17,8 @@ import Register from "./components/RegisterPage";
 import LoginPage from "./components/LoginPage";
 import "./App.css";
 import MarketPage from "./components/MarketPage";
+import MarketDetail from "./components/MarketDetail";
+import SlotPage from "./components/SlotPage";
 
 function App() {
   return (
@@ -37,6 +39,11 @@ function App() {
                     element={<GeneratedZonesPage />}
                   />
                   <Route path="/market" element={<MarketPage />} />
+                  <Route path="/market/:marketId" element={<MarketDetail />} />
+                  <Route
+                    path="/market/:marketId/slots"
+                    element={<SlotPage />}
+                  />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

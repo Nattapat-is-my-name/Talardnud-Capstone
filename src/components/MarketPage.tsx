@@ -34,21 +34,15 @@ import {
   Icon,
 } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const Market = () => {
+  const navigate = useNavigate();
   const { isAuthenticated, token, providerId } = useAuth();
   const [markets, setMarkets] = useState<EntitiesMarket[]>([]);
-  const [selectedMarket, setSelectedMarket] = useState<EntitiesMarket | null>(
-    null
-  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const {
-    isOpen: isDetailOpen,
-    onOpen: onDetailOpen,
-    onClose: onDetailClose,
-  } = useDisclosure();
   const {
     isOpen: isCreateOpen,
     onOpen: onCreateOpen,
@@ -166,8 +160,7 @@ const Market = () => {
   };
 
   const handleViewDetails = (market: EntitiesMarket) => {
-    setSelectedMarket(market);
-    onDetailOpen();
+    navigate(`/market/${market.id}`);
   };
 
   const MarketCard = ({ market }: { market: EntitiesMarket }) => (
@@ -234,7 +227,7 @@ const Market = () => {
         alignItems="center"
         height="100vh"
       >
-        <Spinner size="xl" />
+        <Spinner size="xl" color="blue.500" thickness="6px" />
       </Box>
     );
   }
@@ -331,72 +324,6 @@ const Market = () => {
             </Button>
             <Button variant="ghost" onClick={onCreateClose}>
               Cancel
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      {/* Market Details Modal */}
-      <Modal isOpen={isDetailOpen} onClose={onDetailClose} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>{selectedMarket?.name}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <VStack spacing={4} align="stretch">
-              {selectedMarket?.image && (
-                <Image
-                  src={selectedMarket.image}
-                  alt={selectedMarket.name}
-                  borderRadius="md"
-                  objectFit="cover"
-                  maxHeight="300px"
-                  width="100%"
-                />
-              )}
-              <Text>
-                <strong>Address:</strong>{" "}
-                {selectedMarket?.address || "Not available"}
-              </Text>
-              <Text>
-                <strong>Description:</strong>{" "}
-                {selectedMarket?.description || "No description available"}
-              </Text>
-              <Text>
-                <strong>Open Time:</strong>{" "}
-                {selectedMarket?.open_time || "Not specified"}
-              </Text>
-              <Text>
-                <strong>Close Time:</strong>{" "}
-                {selectedMarket?.close_time || "Not specified"}
-              </Text>
-              {selectedMarket?.latitude && selectedMarket?.longitude && (
-                <Text>
-                  <strong>Location:</strong> {selectedMarket.latitude},{" "}
-                  {selectedMarket.longitude}
-                </Text>
-              )}
-              <Text>
-                <strong>Phone:</strong>{" "}
-                {selectedMarket?.phone || "Not provided"}
-              </Text>
-              <Text>
-                <strong>Created At:</strong>{" "}
-                {selectedMarket?.created_at
-                  ? new Date(selectedMarket.created_at).toLocaleString()
-                  : "N/A"}
-              </Text>
-              <Text>
-                <strong>Updated At:</strong>{" "}
-                {selectedMarket?.updated_at
-                  ? new Date(selectedMarket.updated_at).toLocaleString()
-                  : "N/A"}
-              </Text>
-            </VStack>
-          </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={onDetailClose}>
-              Close
             </Button>
           </ModalFooter>
         </ModalContent>

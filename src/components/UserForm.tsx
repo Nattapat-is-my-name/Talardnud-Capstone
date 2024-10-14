@@ -237,7 +237,7 @@ const UserForm: React.FC = () => {
               _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
               transition="all 0.2s"
             >
-              Generate Zones
+              Preview Zones
             </Button>
             <Button
               type="submit"
