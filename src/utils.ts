@@ -24,6 +24,7 @@ export const createOrUpdateZone = (
   existingZone?: Zone
 ): Zone => {
   const zoneId = existingZone ? existingZone.id : createZoneId(zoneName, date);
+  console.log(`Creating/Updating zone: ${zoneName}, Date: ${date.toISOString()}, ID: ${zoneId}`);
   return {
     id: zoneId,
     zone: zoneName,
@@ -44,6 +45,10 @@ export const generateZonesFromInput = (
   startDate: Date,
   endDate: Date
 ): Zone[] => {
+  console.log("Generating zones for input:", input);
+  console.log("Start date:", startDate.toISOString());
+  console.log("End date:", endDate.toISOString());
+
   const processedInput = input.toUpperCase().replace(/\s/g, "");
   let zonesToGenerate: string[];
 
@@ -53,6 +58,7 @@ export const generateZonesFromInput = (
     const endIndex = ALPHABET.indexOf(end);
 
     if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) {
+      console.log("Invalid zone range input");
       return existingZones;
     }
 
@@ -60,6 +66,8 @@ export const generateZonesFromInput = (
   } else {
     zonesToGenerate = processedInput.split("");
   }
+
+  console.log("Zones to generate:", zonesToGenerate);
 
   const updatedZones = new Map<number, Zone>();
 
@@ -69,19 +77,22 @@ export const generateZonesFromInput = (
   });
 
   // Generate or update zones for the specified date range
-  for (
-    let currentDate = new Date(startDate);
+ for (
+    let currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
     currentDate <= endDate;
     currentDate.setDate(currentDate.getDate() + 1)
   ) {
+    console.log("Processing date:", currentDate.toISOString());
     zonesToGenerate.forEach((letter) => {
       const zoneId = createZoneId(letter, currentDate);
       const existingZone = updatedZones.get(zoneId);
       
       if (existingZone) {
+        console.log(`Updating existing zone ${letter} for date ${currentDate.toISOString()}`);
         // Update existing zone
         updatedZones.set(zoneId, {
           ...existingZone,
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()),
           stallConfiguration: config,
           stalls: Array.from({ length: config.numberOfStalls }, (_, i) => ({
             ...config,
@@ -90,14 +101,16 @@ export const generateZonesFromInput = (
           })),
         });
       } else {
+        console.log(`Creating new zone ${letter} for date ${currentDate.toISOString()}`);
         // Create new zone
-        const newZone = createOrUpdateZone(letter, new Date(currentDate), config);
+        const newZone = createOrUpdateZone(letter, new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()), config);
         updatedZones.set(newZone.id, newZone);
       }
     });
   }
-
-  return Array.from(updatedZones.values());
+  const result = Array.from(updatedZones.values());
+  console.log("Generated zones:", result);
+  return result;
 };
 
 export const updateZones = (

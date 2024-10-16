@@ -12,8 +12,11 @@ import {
 import ImageUpload from "./ImageUpload";
 import UserForm from "./UserForm";
 import { useMarket } from "../contexts/MarketProvider";
+import { useLocation } from "react-router-dom";
 
 const ConfigurePage: React.FC = () => {
+  const location = useLocation();
+  const marketId = location.state?.marketId;
   const { selectedImage, setSelectedImage, zones } = useMarket();
   const bgColor = useColorModeValue("gray.50", "gray.900");
   const cardBgColor = useColorModeValue("white", "gray.800");
@@ -59,7 +62,7 @@ const ConfigurePage: React.FC = () => {
                 borderWidth="1px"
                 borderColor={borderColor}
               >
-                <UserForm />
+                <UserForm marketId={marketId} />
               </Box>
             </GridItem>
           </Grid>

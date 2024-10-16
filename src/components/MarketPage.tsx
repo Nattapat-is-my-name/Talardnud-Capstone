@@ -160,7 +160,7 @@ const Market = () => {
   };
 
   const handleViewDetails = (market: EntitiesMarket) => {
-    navigate(`/market/${market.id}`);
+    navigate(`/market/${market.id}`, { state: { marketId: market.id } });
   };
 
   const MarketCard = ({ market }: { market: EntitiesMarket }) => (

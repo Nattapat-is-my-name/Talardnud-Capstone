@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { MarketApi, Configuration, EntitiesMarket } from "../api";
 import {
   Box,
+  BoxProps,
   Heading,
   Text,
   VStack,
@@ -22,11 +23,39 @@ import {
   Flex,
   Badge,
   useColorModeValue,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalCloseButton,
+  ModalBody,
+  Card,
+  CardBody,
+  CardHeader,
+  Tooltip,
 } from "@chakra-ui/react";
-import { FaMapMarkerAlt, FaPhone, FaClock } from "react-icons/fa";
+import {
+  FaMapMarkerAlt,
+  FaPhone,
+  FaClock,
+  FaExpand,
+  FaPlus,
+} from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
+import { motion, MotionProps, isValidMotionProp } from "framer-motion";
 
-const MarketDetail = () => {
+export type MotionBoxProps = BoxProps & MotionProps;
+
+export const MotionBox = React.forwardRef<HTMLDivElement, MotionBoxProps>(
+  (props, ref) => {
+    const chakraProps = Object.fromEntries(
+      Object.entries(props).filter(([key]) => !isValidMotionProp(key))
+    );
+
+    return <Box ref={ref} as={motion.div} {...chakraProps} />;
+  }
+);
+
+const MarketDetail: React.FC = () => {
   const { marketId } = useParams<{ marketId: string }>();
   const { isAuthenticated, token, providerId } = useAuth();
   const [market, setMarket] = useState<EntitiesMarket | null>(null);
@@ -34,6 +63,13 @@ const MarketDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string>("");
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleOpen = () => setIsOpen(true);
+  const handleClose = () => setIsOpen(false);
+
+  const bgColor = useColorModeValue("gray.50", "gray.700");
+  const cardBgColor = useColorModeValue("white", "gray.800");
 
   useEffect(() => {
     if (isAuthenticated && token && providerId) {
@@ -105,7 +141,11 @@ const MarketDetail = () => {
   };
 
   const handleCreateStall = () => {
-    navigate("/configure");
+    if (market) {
+      navigate("/configure", { state: { marketId: market.id } });
+    } else {
+      console.error("Cannot create stall: market is null");
+    }
   };
 
   if (isLoading) {
@@ -157,104 +197,187 @@ const MarketDetail = () => {
 
   return (
     <Container maxW="7xl" py={8}>
-      <Stack spacing={8}>
-        <Flex align="center" justify="space-between">
-          <Heading as="h1" size="2xl">
-            {market.name}
-          </Heading>
-          <Button colorScheme="blue" onClick={handleCreateStall}>
-            Create Stalls
-          </Button>
-        </Flex>
-        <Stack direction={["column", "row"]} spacing={8}>
-          {market.image && (
-            <Image
-              src={market.image}
-              alt={market.name}
-              borderRadius="lg"
-              objectFit="cover"
-              maxHeight={["300px", "400px"]}
-              maxWidth={["100%", "50%"]}
-            />
-          )}
-          <Box flex={1}>
-            <VStack align="start" spacing={4}>
-              <Text fontSize="xl">
-                {market.description || "No description available"}
-              </Text>
-              <Divider />
-              <Flex align="center">
-                <Icon as={FaMapMarkerAlt} mr={2} />
-                <Text>{market.address || "Not available"}</Text>
-              </Flex>
-              <Flex align="center">
-                <Icon as={FaPhone} mr={2} />
-                <Text>{market.phone || "Not provided"}</Text>
-              </Flex>
-              <Flex align="center">
-                <Icon as={FaClock} mr={2} />
-                <Text>Open: {market.open_time || "Not specified"}</Text>
-              </Flex>
-              <Flex align="center">
-                <Icon as={FaClock} mr={2} />
-                <Text>Close: {market.close_time || "Not specified"}</Text>
-              </Flex>
-              {market.latitude && market.longitude && (
-                <Text>
-                  <strong>Location:</strong> {market.latitude},{" "}
-                  {market.longitude}
-                </Text>
-              )}
-            </VStack>
-          </Box>
-        </Stack>
-        <Box>
-          <Heading as="h2" size="xl" mb={4}>
-            Stalls
-          </Heading>
-          {market.slots && market.slots.length > 0 ? (
-            <SimpleGrid columns={[1, 2, 3]} spacing={8}>
-              {market.slots.map((slot, index) => (
-                <Box
-                  key={index}
-                  borderWidth={1}
+      <VStack spacing={8} align="stretch">
+        <Card bg={cardBgColor} shadow="md">
+          <CardHeader>
+            <Heading as="h1" size="2xl">
+              {market.name}
+            </Heading>
+          </CardHeader>
+          <CardBody>
+            <Stack direction={["column", "row"]} spacing={8}>
+              {market.image && (
+                <Image
+                  src={market.image}
+                  alt={market.name}
                   borderRadius="lg"
-                  p={4}
-                  boxShadow="md"
-                >
-                  <Heading as="h3" size="md" mb={2}>
-                    Slot {index + 1}
-                  </Heading>
-                  <VStack align="start" spacing={2}>
-                    <Text>
-                      <strong>Date:</strong>{" "}
-                      {new Date(slot.date).toLocaleDateString()}
-                    </Text>
-                    <Text>
-                      <strong>Category:</strong> {slot.category}
-                    </Text>
-                    <Text>
-                      <strong>Price:</strong> ${slot.price}
-                    </Text>
-                    <Badge
-                      colorScheme={
-                        slot.status === "available" ? "green" : "red"
-                      }
-                    >
-                      {slot.status}
-                    </Badge>
-                  </VStack>
+                  objectFit="cover"
+                  maxHeight={["300px", "400px"]}
+                  maxWidth={["100%", "50%"]}
+                />
+              )}
+              <VStack align="start" spacing={4} flex={1}>
+                <Text fontSize="xl">
+                  {market.description || "No description available"}
+                </Text>
+                <Divider />
+                <Flex align="center">
+                  <Icon as={FaMapMarkerAlt} mr={2} color="blue.500" />
+                  <Text>{market.address || "Not available"}</Text>
+                </Flex>
+                <Flex align="center">
+                  <Icon as={FaPhone} mr={2} color="green.500" />
+                  <Text>{market.phone || "Not provided"}</Text>
+                </Flex>
+                <Flex align="center">
+                  <Icon as={FaClock} mr={2} color="orange.500" />
+                  <Text>Open: {market.open_time || "Not specified"}</Text>
+                </Flex>
+                <Flex align="center">
+                  <Icon as={FaClock} mr={2} color="orange.500" />
+                  <Text>Close: {market.close_time || "Not specified"}</Text>
+                </Flex>
+                {market.latitude && market.longitude && (
+                  <Text>
+                    <strong>Location:</strong> {market.latitude},{" "}
+                    {market.longitude}
+                  </Text>
+                )}
+              </VStack>
+            </Stack>
+          </CardBody>
+        </Card>
+
+        <Card bg={cardBgColor} shadow="md">
+          <CardHeader>
+            <Heading as="h2" size="xl">
+              Market Layout
+            </Heading>
+          </CardHeader>
+          <CardBody>
+            {market.layout_image && market.layout_image.trim() !== "" ? (
+              <MotionBox
+                width="100%"
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                cursor="pointer"
+                onClick={handleOpen}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Box position="relative" maxWidth="800px" width="100%">
+                  <Image
+                    src={market.layout_image}
+                    alt={`${market.name} Layout`}
+                    objectFit="cover"
+                    width="100%"
+                    height="auto"
+                    maxHeight="600px"
+                    borderRadius="lg"
+                  />
+                  <Tooltip label="Click to expand">
+                    <Icon
+                      as={FaExpand}
+                      position="absolute"
+                      top={2}
+                      right={2}
+                      color="white"
+                      bg="rgba(0,0,0,0.5)"
+                      p={2}
+                      borderRadius="md"
+                      boxSize={8}
+                    />
+                  </Tooltip>
                 </Box>
-              ))}
-            </SimpleGrid>
-          ) : (
-            <Alert status="info">
-              <AlertIcon />
-              No stalls have been created for this market yet.
-            </Alert>
-          )}
-        </Box>
-      </Stack>
+              </MotionBox>
+            ) : (
+              <Alert status="info">
+                <AlertIcon />
+                No layout image available for this market.
+              </Alert>
+            )}
+          </CardBody>
+        </Card>
+
+        <Modal isOpen={isOpen} onClose={handleClose} size="full">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalCloseButton />
+            <ModalBody>
+              <Image
+                src={market.layout_image}
+                alt={`${market.name} Layout`}
+                objectFit="contain"
+                width="100%"
+                height="100vh"
+              />
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+
+        <Card bg={cardBgColor} shadow="md">
+          <CardHeader>
+            <Flex align="center" justify="space-between">
+              <Heading as="h2" size="xl">
+                Stalls
+              </Heading>
+              <Button
+                colorScheme="blue"
+                onClick={handleCreateStall}
+                leftIcon={<Icon as={FaPlus} />}
+              >
+                Create Stalls
+              </Button>
+            </Flex>
+          </CardHeader>
+          <CardBody>
+            {market.slots && market.slots.length > 0 ? (
+              <SimpleGrid columns={[1, 2, 3]} spacing={8}>
+                {market.slots.map((slot, index) => (
+                  <MotionBox
+                    key={index}
+                    borderWidth="1px"
+                    borderRadius="lg"
+                    p={4}
+                    boxShadow="md"
+                    bg={bgColor}
+                    whileHover={{ y: -5 }}
+                  >
+                    <Heading as="h3" size="md" mb={2}>
+                      Slot {index + 1}
+                    </Heading>
+                    <VStack align="start" spacing={2}>
+                      <Text>
+                        <strong>Date:</strong>{" "}
+                        {new Date(slot.date).toLocaleDateString()}
+                      </Text>
+                      <Text>
+                        <strong>Category:</strong> {slot.category}
+                      </Text>
+                      <Text>
+                        <strong>Price:</strong> ${slot.price}
+                      </Text>
+                      <Badge
+                        colorScheme={
+                          slot.status === "available" ? "green" : "red"
+                        }
+                      >
+                        {slot.status}
+                      </Badge>
+                    </VStack>
+                  </MotionBox>
+                ))}
+              </SimpleGrid>
+            ) : (
+              <Alert status="info">
+                <AlertIcon />
+                No stalls have been created for this market yet.
+              </Alert>
+            )}
+          </CardBody>
+        </Card>
+      </VStack>
     </Container>
   );
 };

@@ -9,7 +9,7 @@ export interface Stall {
 }
 
 export interface Zone {
-  id: number; // Changed from string to number
+  id: number; 
   zone: string;
   date: Date;
   stalls: Stall[];

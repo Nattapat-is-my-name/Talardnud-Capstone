@@ -153,25 +153,6 @@ export interface DtosBookingResponse {
 /**
  * 
  * @export
- * @interface DtosDateRange
- */
-export interface DtosDateRange {
-    /**
-     * 
-     * @type {string}
-     * @memberof DtosDateRange
-     */
-    'end_date': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof DtosDateRange
-     */
-    'start_date': string;
-}
-/**
- * 
- * @export
  * @interface DtosGetListMarketResponse
  */
 export interface DtosGetListMarketResponse {
@@ -224,6 +205,19 @@ export interface DtosGetUserResponse {
      * @memberof DtosGetUserResponse
      */
     'username'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface DtosLayoutRequest
+ */
+export interface DtosLayoutRequest {
+    /**
+     * 
+     * @type {Array<DtosZoneLayout>}
+     * @memberof DtosLayoutRequest
+     */
+    'layout'?: Array<DtosZoneLayout>;
 }
 /**
  * 
@@ -445,60 +439,64 @@ export interface DtosRegisterResponse {
 /**
  * 
  * @export
- * @interface DtosSlotData
+ * @interface DtosStall
  */
-export interface DtosSlotData {
-    /**
-     * 
-     * @type {EntitiesCategory}
-     * @memberof DtosSlotData
-     */
-    'category': EntitiesCategory;
+export interface DtosStall {
     /**
      * 
      * @type {number}
-     * @memberof DtosSlotData
+     * @memberof DtosStall
      */
-    'price': number;
+    'height'?: number;
     /**
      * 
      * @type {string}
-     * @memberof DtosSlotData
+     * @memberof DtosStall
      */
-    'slot_id': string;
+    'name'?: string;
     /**
      * 
-     * @type {EntitiesSlotStatus}
-     * @memberof DtosSlotData
+     * @type {number}
+     * @memberof DtosStall
      */
-    'status': EntitiesSlotStatus;
+    'price'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof DtosStall
+     */
+    'stallType'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof DtosStall
+     */
+    'width'?: number;
 }
-
-
 /**
  * 
  * @export
- * @interface DtosSlotGenerationRequest
+ * @interface DtosZoneLayout
  */
-export interface DtosSlotGenerationRequest {
-    /**
-     * 
-     * @type {DtosDateRange}
-     * @memberof DtosSlotGenerationRequest
-     */
-    'date_range': DtosDateRange;
+export interface DtosZoneLayout {
     /**
      * 
      * @type {string}
-     * @memberof DtosSlotGenerationRequest
+     * @memberof DtosZoneLayout
      */
-    'market_id': string;
+    'date'?: string;
     /**
      * 
-     * @type {Array<DtosSlotData>}
-     * @memberof DtosSlotGenerationRequest
+     * @type {Array<DtosStall>}
+     * @memberof DtosZoneLayout
      */
-    'slots': Array<DtosSlotData>;
+    'stalls'?: Array<DtosStall>;
+    /**
+     * 
+     * @type {string}
+     * @memberof DtosZoneLayout
+     */
+    'zone'?: string;
 }
 /**
  * 
@@ -719,6 +717,12 @@ export interface EntitiesMarket {
      * @memberof EntitiesMarket
      */
     'latitude'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EntitiesMarket
+     */
+    'layout_image'?: string;
     /**
      * 
      * @type {string}
@@ -970,6 +974,12 @@ export interface EntitiesSlot {
     'deleted_at'?: string;
     /**
      * 
+     * @type {number}
+     * @memberof EntitiesSlot
+     */
+    'height'?: number;
+    /**
+     * 
      * @type {string}
      * @memberof EntitiesSlot
      */
@@ -1004,6 +1014,18 @@ export interface EntitiesSlot {
      * @memberof EntitiesSlot
      */
     'updated_at'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof EntitiesSlot
+     */
+    'width'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof EntitiesSlot
+     */
+    'zone'?: string;
 }
 
 
@@ -2035,42 +2057,6 @@ export class MarketApi extends BaseAPI {
 export const SlotsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Create a new slot with the provided data
-         * @summary Create a slot
-         * @param {DtosSlotGenerationRequest} slot Slot data
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        slotsCreatePost: async (slot: DtosSlotGenerationRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'slot' is not null or undefined
-            assertParamExists('slotsCreatePost', 'slot', slot)
-            const localVarPath = `/slots/create`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(slot, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Get all slots
          * @summary Get all slots
          * @param {string} id Market ID
@@ -2098,6 +2084,46 @@ export const SlotsApiAxiosParamCreator = function (configuration?: Configuration
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Create or update layout
+         * @summary Create or update layout
+         * @param {string} marketId Market ID
+         * @param {DtosLayoutRequest} layout Layout data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        slotsMarketIdCreatePost: async (marketId: string, layout: DtosLayoutRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'marketId' is not null or undefined
+            assertParamExists('slotsMarketIdCreatePost', 'marketId', marketId)
+            // verify required parameter 'layout' is not null or undefined
+            assertParamExists('slotsMarketIdCreatePost', 'layout', layout)
+            const localVarPath = `/slots/{marketId}/create`
+                .replace(`{${"marketId"}}`, encodeURIComponent(String(marketId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(layout, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2187,19 +2213,6 @@ export const SlotsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = SlotsApiAxiosParamCreator(configuration)
     return {
         /**
-         * Create a new slot with the provided data
-         * @summary Create a slot
-         * @param {DtosSlotGenerationRequest} slot Slot data
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async slotsCreatePost(slot: DtosSlotGenerationRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<EntitiesSlot>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.slotsCreatePost(slot, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['SlotsApi.slotsCreatePost']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
          * Get all slots
          * @summary Get all slots
          * @param {string} id Market ID
@@ -2210,6 +2223,20 @@ export const SlotsApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.slotsGetIdGet(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['SlotsApi.slotsGetIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Create or update layout
+         * @summary Create or update layout
+         * @param {string} marketId Market ID
+         * @param {DtosLayoutRequest} layout Layout data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async slotsMarketIdCreatePost(marketId: string, layout: DtosLayoutRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<string>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.slotsMarketIdCreatePost(marketId, layout, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SlotsApi.slotsMarketIdCreatePost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -2250,16 +2277,6 @@ export const SlotsApiFactory = function (configuration?: Configuration, basePath
     const localVarFp = SlotsApiFp(configuration)
     return {
         /**
-         * Create a new slot with the provided data
-         * @summary Create a slot
-         * @param {DtosSlotGenerationRequest} slot Slot data
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        slotsCreatePost(slot: DtosSlotGenerationRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<EntitiesSlot>> {
-            return localVarFp.slotsCreatePost(slot, options).then((request) => request(axios, basePath));
-        },
-        /**
          * Get all slots
          * @summary Get all slots
          * @param {string} id Market ID
@@ -2268,6 +2285,17 @@ export const SlotsApiFactory = function (configuration?: Configuration, basePath
          */
         slotsGetIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<EntitiesSlot> {
             return localVarFp.slotsGetIdGet(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Create or update layout
+         * @summary Create or update layout
+         * @param {string} marketId Market ID
+         * @param {DtosLayoutRequest} layout Layout data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        slotsMarketIdCreatePost(marketId: string, layout: DtosLayoutRequest, options?: RawAxiosRequestConfig): AxiosPromise<string> {
+            return localVarFp.slotsMarketIdCreatePost(marketId, layout, options).then((request) => request(axios, basePath));
         },
         /**
          * Get slots by date
@@ -2301,18 +2329,6 @@ export const SlotsApiFactory = function (configuration?: Configuration, basePath
  */
 export class SlotsApi extends BaseAPI {
     /**
-     * Create a new slot with the provided data
-     * @summary Create a slot
-     * @param {DtosSlotGenerationRequest} slot Slot data
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SlotsApi
-     */
-    public slotsCreatePost(slot: DtosSlotGenerationRequest, options?: RawAxiosRequestConfig) {
-        return SlotsApiFp(this.configuration).slotsCreatePost(slot, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
      * Get all slots
      * @summary Get all slots
      * @param {string} id Market ID
@@ -2322,6 +2338,19 @@ export class SlotsApi extends BaseAPI {
      */
     public slotsGetIdGet(id: string, options?: RawAxiosRequestConfig) {
         return SlotsApiFp(this.configuration).slotsGetIdGet(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Create or update layout
+     * @summary Create or update layout
+     * @param {string} marketId Market ID
+     * @param {DtosLayoutRequest} layout Layout data
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SlotsApi
+     */
+    public slotsMarketIdCreatePost(marketId: string, layout: DtosLayoutRequest, options?: RawAxiosRequestConfig) {
+        return SlotsApiFp(this.configuration).slotsMarketIdCreatePost(marketId, layout, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

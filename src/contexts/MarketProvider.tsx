@@ -1,11 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { Zone } from "../types";
-
+import { useLocation } from "react-router-dom";
 interface MarketContextType {
   zones: Zone[];
   setZones: React.Dispatch<React.SetStateAction<Zone[]>>;
   selectedImage: string | null;
   setSelectedImage: React.Dispatch<React.SetStateAction<string | null>>;
+  marketId: string | null; // Add this line
+  setMarketId: React.Dispatch<React.SetStateAction<string | null>>; // Add this line
 }
 
 const MarketContext = createContext<MarketContextType | undefined>(undefined);
@@ -15,6 +17,7 @@ export const MarketProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [zones, setZones] = useState<Zone[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [marketId, setMarketId] = useState<string | null>(null);
 
   useEffect(() => {
     const storedZones = localStorage.getItem("generatedZones");
@@ -41,7 +44,14 @@ export const MarketProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <MarketContext.Provider
-      value={{ zones, setZones, selectedImage, setSelectedImage }}
+      value={{
+        zones,
+        setZones,
+        selectedImage,
+        setSelectedImage,
+        marketId,
+        setMarketId,
+      }}
     >
       {children}
     </MarketContext.Provider>

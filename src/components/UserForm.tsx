@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -21,18 +21,25 @@ import {
   Divider,
   Flex,
   useColorModeValue,
+  Tooltip,
 } from "@chakra-ui/react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import DatePicker, { DateObject } from "react-multi-date-picker";
 import { Zone, Stall } from "../types";
 import { createNewStall, generateZonesFromInput } from "../utils";
 import { useMarket } from "../contexts/MarketProvider";
+import { SlotsApi, Configuration, DtosLayoutRequest } from "../api";
+import { useAuth } from "../contexts/AuthContext";
 
 const STALL_TYPES = ["Food", "Merchandise", "Service"];
 
-const UserForm: React.FC = () => {
+interface UserFormProps {
+  marketId: string;
+}
+
+const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
   const navigate = useNavigate();
   const { zones, setZones } = useMarket();
+  const { token } = useAuth();
   const toast = useToast();
 
   const [formState, setFormState] = useState({
@@ -40,49 +47,81 @@ const UserForm: React.FC = () => {
     stallsPerZone: 10,
     config: createNewStall(""),
     error: "",
-    startDate: new Date(),
-    endDate: new Date(),
+    selectedDates: [] as DateObject[],
   });
 
+  useEffect(() => {
+    console.log("UserForm component mounted");
+    return () => {
+      console.log("UserForm component will unmount");
+    };
+  }, []);
+
   const handleInputChange = useCallback((field: string, value: any) => {
+    console.log(`Updating ${field} with value:`, value);
     setFormState((prev) => ({
       ...prev,
-      [field]:
-        field === "startDate" || field === "endDate"
-          ? value || new Date()
-          : value,
+      [field]: value,
     }));
   }, []);
 
   const handleConfigChange = useCallback((field: keyof Stall, value: any) => {
+    console.log(`Updating config.${field} with value:`, value);
     setFormState((prev) => ({
       ...prev,
       config: { ...prev.config, [field]: value },
     }));
   }, []);
 
+  const handleDateChange = useCallback((dates: DateObject | DateObject[]) => {
+    console.log("Selected dates:", dates);
+    setFormState((prev) => ({
+      ...prev,
+      selectedDates: Array.isArray(dates) ? dates : [dates],
+    }));
+  }, []);
+
   const handleGenerateZones = useCallback(() => {
-    const { zoneInput, config, startDate, endDate, stallsPerZone } = formState;
+    console.log("Generating zones");
+    const { zoneInput, config, selectedDates, stallsPerZone } = formState;
 
-    // Ensure endDate is not before startDate
-    const adjustedEndDate = new Date(endDate);
-    adjustedEndDate.setHours(23, 59, 59, 999);
+    if (selectedDates.length === 0) {
+      console.log("Error: No dates selected");
+      setFormState((prev) => ({
+        ...prev,
+        error: "Please select at least one date.",
+      }));
+      return;
+    }
 
-    const updatedZones = generateZonesFromInput(
-      zoneInput,
-      { ...config, numberOfStalls: stallsPerZone },
-      zones,
-      new Date(startDate),
-      adjustedEndDate
-    );
+    let updatedZones = [...zones];
 
+    selectedDates.forEach((dateObj) => {
+      const date = new Date(
+        dateObj.year,
+        dateObj.month.number - 1,
+        dateObj.day
+      );
+      console.log("Generating zones for date:", date.toISOString());
+      const generatedZones = generateZonesFromInput(
+        zoneInput,
+        { ...config, numberOfStalls: stallsPerZone },
+        updatedZones,
+        date,
+        date
+      );
+      updatedZones = generatedZones;
+    });
+
+    console.log("Updated zones:", updatedZones);
     setZones(updatedZones);
 
     if (updatedZones.length === zones.length) {
+      console.log("No new zones generated");
       setFormState((prev) => ({
         ...prev,
         error:
-          "No new zones were generated. All specified zones already exist for the selected date range.",
+          "No new zones were generated. All specified zones already exist for the selected dates.",
       }));
     } else {
       setFormState((prev) => ({ ...prev, error: "" }));
@@ -91,9 +130,12 @@ const UserForm: React.FC = () => {
       const updatedZonesCount =
         zones.length - (updatedZones.length - newZonesCount);
 
+      console.log(
+        `${newZonesCount} new zones added, ${updatedZonesCount} zones updated`
+      );
       toast({
         title: "Zones generated/updated",
-        description: `${newZonesCount} new zone(s) added and ${updatedZonesCount} existing zone(s) updated for the selected date range.`,
+        description: `${newZonesCount} new zone(s) added and ${updatedZonesCount} existing zone(s) updated for the selected dates.`,
         status: "success",
         duration: 5000,
         isClosable: true,
@@ -102,34 +144,119 @@ const UserForm: React.FC = () => {
   }, [formState, zones, setZones, toast]);
 
   const handleSubmit = useCallback(
-    (event: React.FormEvent) => {
+    async (event: React.FormEvent) => {
       event.preventDefault();
+      console.log("Form submission started");
+      console.log("Selected dates:", formState.selectedDates);
+      console.log("Current zones:", zones);
+
       if (zones.length === 0) {
+        console.log("Error: No zones generated");
         setFormState((prev) => ({
           ...prev,
           error: "Please generate zones before submitting.",
         }));
         return;
       }
-      navigate("/generated-zones");
+
+      if (!marketId) {
+        console.log("Error: No market ID provided");
+        setFormState((prev) => ({
+          ...prev,
+          error: "Market ID is missing. Please select a market first.",
+        }));
+        return;
+      }
+
+      if (!token) {
+        console.log("Error: No authentication token");
+        setFormState((prev) => ({
+          ...prev,
+          error: "You are not authenticated. Please log in and try again.",
+        }));
+        return;
+      }
+
+      const layout = zones.map((zone) => ({
+        zone: zone.zone,
+        date: new Date(zone.date).toISOString(),
+        stalls: zone.stalls.map((stall) => ({
+          name: stall.name,
+          width: stall.width,
+          height: stall.height,
+          stallType: stall.stallType,
+          price: stall.pricePerStall,
+        })),
+      }));
+
+      const formattedLayout: DtosLayoutRequest = { layout };
+
+      console.log("Form submitted with the following layout:");
+      console.log(JSON.stringify(formattedLayout, null, 2));
+
+      try {
+        const config = new Configuration({
+          basePath: process.env.REACT_APP_API_BASE_URL,
+          accessToken: token,
+        });
+
+        const slotsApi = new SlotsApi(config);
+
+        console.log("Submitting layout to API", marketId);
+
+        const response = await slotsApi.slotsMarketIdCreatePost(
+          marketId,
+          formattedLayout
+        );
+
+        console.log("API response:", response.data);
+
+        toast({
+          title: "Layout submitted successfully",
+          description: "The market layout has been created or updated.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+
+        navigate("/generated-zones");
+      } catch (error) {
+        console.error("Error submitting layout:", error);
+        toast({
+          title: "Error submitting layout",
+          description:
+            "An error occurred while submitting the layout. Please try again.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
     },
-    [zones, navigate]
+    [zones, navigate, formState, toast, marketId, token]
   );
   const renderDatePicker = useCallback(
-    (field: "startDate" | "endDate", label: string) => (
+    () => (
       <FormControl isRequired>
-        <FormLabel fontWeight="medium">{label}</FormLabel>
+        <FormLabel fontWeight="medium">Select Dates</FormLabel>
         <DatePicker
-          selected={formState[field]}
-          onChange={(date: Date | null) =>
-            handleInputChange(field, date || new Date())
-          }
-          dateFormat="MMMM d, yyyy"
-          customInput={<Input />}
+          value={formState.selectedDates}
+          onChange={handleDateChange}
+          multiple
+          format="MMMM D, YYYY"
+          render={<Input readOnly placeholder="Click to select dates" />}
         />
+        {formState.selectedDates.length > 0 && (
+          <Text fontSize="sm" mt={2}>
+            Selected dates:{" "}
+            {formState.selectedDates
+              .sort((a, b) => a.toDate().getTime() - b.toDate().getTime())
+              .map((date) => date.format("MMM D, YYYY"))
+              .join(", ")}
+          </Text>
+        )}
       </FormControl>
     ),
-    [formState, handleInputChange]
+    [formState.selectedDates, handleDateChange]
   );
 
   const renderNumberInput = useCallback(
@@ -162,30 +289,30 @@ const UserForm: React.FC = () => {
   );
 
   const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
+
+  console.log("Rendering UserForm component");
 
   return (
-    <Box bg={bgColor} p={8} rounded="xl">
+    <Box bg={bgColor} p={8} rounded="xl" maxWidth="600px" margin="auto">
       <form onSubmit={handleSubmit}>
         <VStack spacing={6} align="stretch">
           <Heading as="h3" size="lg" fontWeight="semibold" mb={2}>
             Market Configuration
           </Heading>
 
-          <Flex direction={{ base: "column", md: "row" }} gap={6}>
-            {renderDatePicker("startDate", "Start Date")}
-            {renderDatePicker("endDate", "End Date")}
-          </Flex>
+          {renderDatePicker()}
 
           <FormControl isRequired>
             <FormLabel fontWeight="medium">
               Zone Input (e.g., A, B, C or A-D)
             </FormLabel>
-            <Input
-              placeholder="A or A-D"
-              value={formState.zoneInput}
-              onChange={(e) => handleInputChange("zoneInput", e.target.value)}
-            />
+            <Tooltip label="Enter single letters or a range (e.g., A-D)">
+              <Input
+                placeholder="A or A-D"
+                value={formState.zoneInput}
+                onChange={(e) => handleInputChange("zoneInput", e.target.value)}
+              />
+            </Tooltip>
           </FormControl>
 
           {formState.error && (
