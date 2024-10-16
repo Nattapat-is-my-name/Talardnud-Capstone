@@ -9,9 +9,9 @@ export interface Stall {
 }
 
 export interface Zone {
-  id: number; 
-  zone: string;
+  id: number;
+  zone: string; // Zone identifier
   date: Date;
-  stalls: Stall[];
-  stallConfiguration: Stall;
+  stalls: Stall[]; // Stalls belong to this zone
+  stallConfiguration: Stall; // Configuration object
 }

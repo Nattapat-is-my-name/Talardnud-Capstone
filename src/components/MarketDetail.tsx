@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MarketApi, Configuration, EntitiesMarket } from "../api";
+import { MarketApi, Configuration, EntitiesMarket, EntitiesSlot } from "../api";
 import {
   Box,
-  BoxProps,
   Heading,
-  Text,
   VStack,
-  Image,
+  Text,
   Spinner,
   Alert,
   AlertIcon,
@@ -16,10 +14,7 @@ import {
   Code,
   Button,
   SimpleGrid,
-  Stack,
   Container,
-  Divider,
-  Icon,
   Flex,
   Badge,
   useColorModeValue,
@@ -31,7 +26,11 @@ import {
   Card,
   CardBody,
   CardHeader,
+  Icon,
+  Stack,
+  Image,
   Tooltip,
+  BoxProps,
 } from "@chakra-ui/react";
 import {
   FaMapMarkerAlt,
@@ -41,7 +40,11 @@ import {
   FaPlus,
 } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
-import { motion, MotionProps, isValidMotionProp } from "framer-motion";
+import { isValidMotionProp, motion, MotionProps } from "framer-motion";
+import { DateRangePicker } from "react-dates";
+import moment, { Moment } from "moment";
+import "react-dates/initialize";
+import "react-dates/lib/css/_datepicker.css";
 
 export type MotionBoxProps = BoxProps & MotionProps;
 
@@ -50,7 +53,6 @@ export const MotionBox = React.forwardRef<HTMLDivElement, MotionBoxProps>(
     const chakraProps = Object.fromEntries(
       Object.entries(props).filter(([key]) => !isValidMotionProp(key))
     );
-
     return <Box ref={ref} as={motion.div} {...chakraProps} />;
   }
 );
@@ -64,6 +66,13 @@ const MarketDetail: React.FC = () => {
   const [debugInfo, setDebugInfo] = useState<string>("");
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Date filter states
+  const [startDate, setStartDate] = useState<Moment | null>(null);
+  const [endDate, setEndDate] = useState<Moment | null>(null);
+  const [focusedInput, setFocusedInput] = useState<
+    "startDate" | "endDate" | null
+  >(null);
 
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
@@ -103,33 +112,14 @@ const MarketDetail: React.FC = () => {
         accessToken: token,
       });
       const api = new MarketApi(config);
-
       const response = await api.marketsProviderGetIdGet(providerId);
-
       console.log("API Response:", response);
       setDebugInfo(JSON.stringify(response, null, 2));
 
-      if (response.data) {
-        console.log("Response data:", response.data);
-        if (response.data.data) {
-          console.log("Response data.data:", response.data.data);
-          if (
-            Array.isArray(response.data.data) &&
-            response.data.data.length > 0
-          ) {
-            console.log("Setting market:", response.data.data[0]);
-            setMarket(response.data.data[0]);
-          } else if (typeof response.data.data === "object") {
-            console.log("Setting market (object):", response.data.data);
-            setMarket(response.data.data as EntitiesMarket);
-          } else {
-            setError("Market data is in an unexpected format.");
-          }
-        } else {
-          setError("No market data found in the response.");
-        }
+      if (response.data && response.data.data) {
+        setMarket(response.data.data[0] || null);
       } else {
-        setError("No data in the response.");
+        setError("No market data found in the response.");
       }
     } catch (err) {
       setError("Failed to fetch market details. Please try again later.");
@@ -147,6 +137,26 @@ const MarketDetail: React.FC = () => {
       console.error("Cannot create stall: market is null");
     }
   };
+
+  // Group slots by date and then by zone
+  const groupedSlots =
+    market?.slots?.reduce((acc, slot) => {
+      const slotDate = moment(slot.date).format("YYYY-MM-DD");
+      if (!acc[slotDate]) acc[slotDate] = {};
+      const zone = slot.zone || "Uncategorized";
+      if (!acc[slotDate][zone]) acc[slotDate][zone] = [];
+      acc[slotDate][zone].push(slot);
+      return acc;
+    }, {} as Record<string, Record<string, EntitiesSlot[]>>) || {};
+
+  // Filter slots by date range
+  const filteredDates = Object.keys(groupedSlots).filter((date) => {
+    if (startDate && endDate) {
+      const slotDate = moment(date);
+      return slotDate.isBetween(startDate, endDate, "day", "[]");
+    }
+    return true; // Show all dates if no range is selected
+  });
 
   if (isLoading) {
     return (
@@ -196,7 +206,7 @@ const MarketDetail: React.FC = () => {
   }
 
   return (
-    <Container maxW="7xl" py={8}>
+    <Container maxW="8xl" py={8}>
       <VStack spacing={8} align="stretch">
         <Card bg={cardBgColor} shadow="md">
           <CardHeader>
@@ -206,21 +216,19 @@ const MarketDetail: React.FC = () => {
           </CardHeader>
           <CardBody>
             <Stack direction={["column", "row"]} spacing={8}>
-              {market.image && (
-                <Image
-                  src={market.image}
-                  alt={market.name}
-                  borderRadius="lg"
-                  objectFit="cover"
-                  maxHeight={["300px", "400px"]}
-                  maxWidth={["100%", "50%"]}
-                />
-              )}
+              <Image
+                src={market.image}
+                alt={market.name}
+                borderRadius="lg"
+                objectFit="cover"
+                maxH={["300px", "400px"]}
+                maxW={["100%", "50%"]}
+              />
+
               <VStack align="start" spacing={4} flex={1}>
                 <Text fontSize="xl">
                   {market.description || "No description available"}
                 </Text>
-                <Divider />
                 <Flex align="center">
                   <Icon as={FaMapMarkerAlt} mr={2} color="blue.500" />
                   <Text>{market.address || "Not available"}</Text>
@@ -237,12 +245,6 @@ const MarketDetail: React.FC = () => {
                   <Icon as={FaClock} mr={2} color="orange.500" />
                   <Text>Close: {market.close_time || "Not specified"}</Text>
                 </Flex>
-                {market.latitude && market.longitude && (
-                  <Text>
-                    <strong>Location:</strong> {market.latitude},{" "}
-                    {market.longitude}
-                  </Text>
-                )}
               </VStack>
             </Stack>
           </CardBody>
@@ -294,89 +296,99 @@ const MarketDetail: React.FC = () => {
             ) : (
               <Alert status="info">
                 <AlertIcon />
-                No layout image available for this market.
+                No layout image available for this market. Please upload
               </Alert>
             )}
           </CardBody>
         </Card>
 
-        <Modal isOpen={isOpen} onClose={handleClose} size="full">
-          <ModalOverlay />
-          <ModalContent>
-            <ModalCloseButton />
-            <ModalBody>
-              <Image
-                src={market.layout_image}
-                alt={`${market.name} Layout`}
-                objectFit="contain"
-                width="100%"
-                height="100vh"
-              />
-            </ModalBody>
-          </ModalContent>
-        </Modal>
+        <Flex align="center" justify="space-between" mb={4}>
+          <Box>
+            <DateRangePicker
+              startDate={startDate}
+              startDateId="start-date-id"
+              endDate={endDate}
+              endDateId="end-date-id"
+              onDatesChange={({ startDate, endDate }) => {
+                setStartDate(startDate);
+                setEndDate(endDate);
+              }}
+              focusedInput={focusedInput}
+              onFocusChange={(focusedInput) => setFocusedInput(focusedInput)}
+              isOutsideRange={() => false} // Allow past dates
+              displayFormat="YYYY-MM-DD"
+            />
+          </Box>
 
-        <Card bg={cardBgColor} shadow="md">
-          <CardHeader>
-            <Flex align="center" justify="space-between">
-              <Heading as="h2" size="xl">
-                Stalls
+          <Button
+            colorScheme="blue"
+            onClick={handleCreateStall}
+            leftIcon={<Icon as={FaPlus} />}
+            ml={4} // Adds space between DateRangePicker and Button
+          >
+            Create Stalls
+          </Button>
+        </Flex>
+
+        {/* Render grouped stalls by date and zone */}
+        {filteredDates.length > 0 ? (
+          filteredDates.map((date) => (
+            <Box key={date} mb={8}>
+              <Heading as="h2" size="xl" mb={4}>
+                {moment(date).format("MMMM D, YYYY")}
               </Heading>
-              <Button
-                colorScheme="blue"
-                onClick={handleCreateStall}
-                leftIcon={<Icon as={FaPlus} />}
-              >
-                Create Stalls
-              </Button>
-            </Flex>
-          </CardHeader>
-          <CardBody>
-            {market.slots && market.slots.length > 0 ? (
-              <SimpleGrid columns={[1, 2, 3]} spacing={8}>
-                {market.slots.map((slot, index) => (
-                  <MotionBox
-                    key={index}
-                    borderWidth="1px"
-                    borderRadius="lg"
-                    p={4}
-                    boxShadow="md"
-                    bg={bgColor}
-                    whileHover={{ y: -5 }}
-                  >
-                    <Heading as="h3" size="md" mb={2}>
-                      Slot {index + 1}
-                    </Heading>
-                    <VStack align="start" spacing={2}>
-                      <Text>
-                        <strong>Date:</strong>{" "}
-                        {new Date(slot.date).toLocaleDateString()}
-                      </Text>
-                      <Text>
-                        <strong>Category:</strong> {slot.category}
-                      </Text>
-                      <Text>
-                        <strong>Price:</strong> ${slot.price}
-                      </Text>
-                      <Badge
-                        colorScheme={
-                          slot.status === "available" ? "green" : "red"
-                        }
-                      >
-                        {slot.status}
-                      </Badge>
-                    </VStack>
-                  </MotionBox>
-                ))}
-              </SimpleGrid>
-            ) : (
-              <Alert status="info">
-                <AlertIcon />
-                No stalls have been created for this market yet.
-              </Alert>
-            )}
-          </CardBody>
-        </Card>
+
+              {Object.entries(groupedSlots[date]).map(([zoneName, slots]) => (
+                <Card key={zoneName} bg={cardBgColor} shadow="md" mb={4}>
+                  <CardHeader>
+                    <Flex justify="space-between" align="center">
+                      <Heading as="h3" size="lg">
+                        Zone {zoneName}
+                      </Heading>
+                      <Text>Number of Stalls: {slots.length}</Text>
+                    </Flex>
+                  </CardHeader>
+                  <CardBody>
+                    <SimpleGrid columns={[1, 2, 3, 4]} spacing={8}>
+                      {slots.map((slot, index) => (
+                        <motion.div key={index} whileHover={{ scale: 1.02 }}>
+                          <Box
+                            borderWidth="1px"
+                            borderRadius="lg"
+                            p={4}
+                            boxShadow="md"
+                            bg={bgColor}
+                          >
+                            <Heading as="h4" size="md" mb={2}>
+                              Slot {slot.name}
+                            </Heading>
+                            <VStack align="start" spacing={2}>
+                              <Text>
+                                <strong>Width:</strong> {slot.width} meters
+                              </Text>
+                              <Text>
+                                <strong>Height:</strong> {slot.height} meters
+                              </Text>
+                              <Text>
+                                <strong>Price:</strong> ${slot.price}
+                              </Text>
+                              <Badge colorScheme="green">Available</Badge>
+                            </VStack>
+                          </Box>
+                        </motion.div>
+                      ))}
+                    </SimpleGrid>
+                  </CardBody>
+                </Card>
+              ))}
+            </Box>
+          ))
+        ) : (
+          <Alert status="info">
+            <AlertIcon />
+            No stalls are available for the selected date range.
+          </Alert>
+        )}
       </VStack>
     </Container>
   );

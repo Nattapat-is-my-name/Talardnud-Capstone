@@ -100,7 +100,7 @@ const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
       const date = new Date(
         dateObj.year,
         dateObj.month.number - 1,
-        dateObj.day
+        dateObj.day + 1
       );
       console.log("Generating zones for date:", date.toISOString());
       const generatedZones = generateZonesFromInput(
@@ -176,6 +176,20 @@ const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
         }));
         return;
       }
+
+      console.log(
+        zones.map((zone) => ({
+          zone: zone.zone,
+          date: new Date(zone.date).toISOString(),
+          stalls: zone.stalls.map((stall) => ({
+            name: stall.name,
+            width: stall.width,
+            height: stall.height,
+            stallType: stall.stallType,
+            price: stall.pricePerStall,
+          })),
+        }))
+      );
 
       const layout = zones.map((zone) => ({
         zone: zone.zone,
