@@ -81,7 +81,7 @@ const MarketDetail: React.FC = () => {
   const cardBgColor = useColorModeValue("white", "gray.800");
 
   useEffect(() => {
-    if (isAuthenticated && token && providerId) {
+    if (isAuthenticated && token && marketId) {
       fetchMarketDetails();
     } else {
       setError("Authentication information or market ID is missing.");
@@ -95,10 +95,10 @@ const MarketDetail: React.FC = () => {
   }, [isAuthenticated, token, providerId]);
 
   const fetchMarketDetails = async () => {
-    if (!token || !providerId) {
+    if (!token || !marketId) {
       setError("Authentication information or market ID is missing.");
       setDebugInfo(
-        `token: ${token ? "exists" : "missing"}, providerId: ${providerId}`
+        `token: ${token ? "exists" : "missing"}, marketId: ${marketId}`
       );
       setIsLoading(false);
       return;
@@ -112,7 +112,8 @@ const MarketDetail: React.FC = () => {
         accessToken: token,
       });
       const api = new MarketApi(config);
-      const response = await api.marketsProviderGetIdGet(providerId);
+      console.log("Fetching market details for marketId :", marketId);
+      const response = await api.marketsGetIdGet(marketId);
       console.log("API Response:", response);
       setDebugInfo(JSON.stringify(response, null, 2));
 

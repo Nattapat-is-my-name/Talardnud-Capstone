@@ -76,13 +76,18 @@ export const generateZonesFromInput = (
     updatedZones.set(zone.id, zone);
   });
 
+  // Normalize start and end dates to midnight UTC
+  const normalizedStartDate = new Date(Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()));
+  const normalizedEndDate = new Date(Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()));
+
   // Generate or update zones for the specified date range
- for (
-    let currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-    currentDate <= endDate;
-    currentDate.setDate(currentDate.getDate() + 1)
+  for (
+    let currentDate = new Date(normalizedStartDate);
+    currentDate <= normalizedEndDate;
+    currentDate.setUTCDate(currentDate.getUTCDate() + 1)
   ) {
     console.log("Processing date:", currentDate.toISOString());
+    
     zonesToGenerate.forEach((letter) => {
       const zoneId = createZoneId(letter, currentDate);
       const existingZone = updatedZones.get(zoneId);
@@ -92,7 +97,7 @@ export const generateZonesFromInput = (
         // Update existing zone
         updatedZones.set(zoneId, {
           ...existingZone,
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()),
+          date: new Date(currentDate),
           stallConfiguration: config,
           stalls: Array.from({ length: config.numberOfStalls }, (_, i) => ({
             ...config,
@@ -103,11 +108,12 @@ export const generateZonesFromInput = (
       } else {
         console.log(`Creating new zone ${letter} for date ${currentDate.toISOString()}`);
         // Create new zone
-        const newZone = createOrUpdateZone(letter, new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()), config);
+        const newZone = createOrUpdateZone(letter, new Date(currentDate), config);
         updatedZones.set(newZone.id, newZone);
       }
     });
   }
+  
   const result = Array.from(updatedZones.values());
   console.log("Generated zones:", result);
   return result;

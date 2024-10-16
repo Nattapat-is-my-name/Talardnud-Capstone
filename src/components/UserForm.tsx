@@ -100,7 +100,7 @@ const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
       const date = new Date(
         dateObj.year,
         dateObj.month.number - 1,
-        dateObj.day + 1
+        dateObj.day
       );
       console.log("Generating zones for date:", date.toISOString());
       const generatedZones = generateZonesFromInput(
