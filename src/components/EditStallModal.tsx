@@ -9,27 +9,27 @@ import {
   ModalCloseButton,
   Button,
 } from "@chakra-ui/react";
-import { Stall } from "../types";
+import { Slot } from "../types";
 import StallCard from "./StallCard";
 
 interface EditStallModalProps {
   isOpen: boolean;
   onClose: () => void;
-  stall: Stall | null;
-  zoneId: number | null;
-  onSave: (zoneId: number, updatedStall: Stall) => void;
-  onDelete: (zoneId: number, stallId: number) => void;
+  slot: Slot | null;
+  zoneId: string | null;
+  onSave: (zoneId: string, updatedSlot: Slot) => void;
+  onDelete: (zoneId: string, slotId: string) => void;
 }
 
 const EditStallModal: React.FC<EditStallModalProps> = ({
   isOpen,
   onClose,
-  stall,
+  slot,
   zoneId,
   onSave,
   onDelete,
 }) => {
-  if (!stall || !zoneId) return null;
+  if (!slot || !zoneId) return null;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -39,13 +39,13 @@ const EditStallModal: React.FC<EditStallModalProps> = ({
         <ModalCloseButton />
         <ModalBody>
           <StallCard
-            stall={stall}
+            slot={slot}
             zoneId={zoneId}
             isEditing={true}
             onEdit={() => {}}
             onSave={onSave}
             onDelete={() => {
-              onDelete(zoneId, stall.id);
+              onDelete(zoneId, slot.id);
               onClose();
             }}
             onCancelEdit={onClose}

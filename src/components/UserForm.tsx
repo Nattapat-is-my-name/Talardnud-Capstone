@@ -233,7 +233,10 @@ const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
           isClosable: true,
         });
 
-        navigate("/generated-zones");
+        console.log("Navigating to generated zones page");
+        console.log("Market ID:", marketId);
+
+        navigate("/generated-zones", { state: { marketId: marketId } });
       } catch (error) {
         console.error("Error submitting layout:", error);
         toast({

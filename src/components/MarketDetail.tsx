@@ -45,6 +45,7 @@ import { DateRangePicker } from "react-dates";
 import moment, { Moment } from "moment";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
+import { EditIcon } from "@chakra-ui/icons";
 
 export type MotionBoxProps = BoxProps & MotionProps;
 
@@ -321,14 +322,27 @@ const MarketDetail: React.FC = () => {
             />
           </Box>
 
-          <Button
-            colorScheme="blue"
-            onClick={handleCreateStall}
-            leftIcon={<Icon as={FaPlus} />}
-            ml={4} // Adds space between DateRangePicker and Button
-          >
-            Create Stalls
-          </Button>
+          <Flex align="center">
+            <Button
+              colorScheme="blue"
+              onClick={() => {
+                navigate("/generated-zones", { state: { marketId: marketId } });
+              }}
+              leftIcon={<Icon as={EditIcon} />}
+              ml={4}
+            >
+              Edit Stall
+            </Button>
+
+            <Button
+              colorScheme="blue"
+              onClick={handleCreateStall}
+              leftIcon={<Icon as={FaPlus} />}
+              ml={4} // Adds space between DateRangePicker and Button
+            >
+              Create Stalls
+            </Button>
+          </Flex>
         </Flex>
 
         {/* Render grouped stalls by date and zone */}

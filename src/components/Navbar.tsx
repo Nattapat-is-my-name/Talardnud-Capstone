@@ -23,9 +23,7 @@ const Navbar: React.FC = () => {
         <Link as={RouterLink} to="/market" color="white" mr={4}>
           Market
         </Link>
-        <Link as={RouterLink} to="/generated-zones" color="white" mr={4}>
-          Generated Zones
-        </Link>
+
         <Link as={RouterLink} to="/login" color="white" mr={4}>
           Login
         </Link>
