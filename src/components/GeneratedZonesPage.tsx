@@ -17,54 +17,38 @@ import { DateRangePicker } from "react-dates";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
 import moment from "moment";
-import { MarketApi, Configuration, SlotsApi } from "../api";
+import { MarketApi, Configuration, SlotsApi, EntitiesSlot } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Slot } from "../types";
 
 const LazyZoneCard = lazy(() => import("../components/ZoneCard"));
 const LazyEditStallModal = lazy(() => import("../components/EditStallModal"));
 
 const ITEMS_PER_PAGE = 10;
 
-// Types based on the API response
-interface Slot {
-  id: string;
-  market_id: string;
-  name: string;
-  zone: string;
-  width: number;
-  height: number;
-  price: number;
-  status: string;
-  category: string;
-  date: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Market {
-  id: string;
-  name: string;
-  description: string;
-  address: string;
-  open_time: string;
-  close_time: string;
-  image: string;
-  layout_image: string;
-  slots: Slot[];
-}
-
-interface ApiResponse {
-  data: Market[];
-  message: string;
-  status: string;
-}
+// Helper function to convert EntitiesSlot to Slot
+const convertToSlot = (entitySlot: EntitiesSlot): Slot => ({
+  id: entitySlot.id || "",
+  market_id: entitySlot.market_id || "",
+  name: entitySlot.name || "",
+  zone: entitySlot.zone || "",
+  width: entitySlot.width || 0,
+  height: entitySlot.height || 0,
+  price: entitySlot.price || 0,
+  status: entitySlot.status || "",
+  category: entitySlot.category || "",
+  date: entitySlot.date || "",
+  created_at: entitySlot.created_at || "",
+  updated_at: entitySlot.updated_at || "",
+});
 
 const GeneratedZonesPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { token } = useAuth();
-  const [market, setMarket] = useState<Market | null>(null);
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [marketName, setMarketName] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,7 +68,7 @@ const GeneratedZonesPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const fetchMarketData = async () => {
+    const fetchSlotData = async () => {
       console.log("Location state:", location.state);
       const marketId = location.state?.marketId;
       console.log("Market ID from state:", marketId);
@@ -104,33 +88,41 @@ const GeneratedZonesPage: React.FC = () => {
           basePath: process.env.REACT_APP_API_BASE_URL,
           accessToken: token,
         });
-        const api = new MarketApi(config);
         const slotapi = new SlotsApi(config);
-        console.log("Fetching market data for ID:", marketId);
-        const response = await api.marketsGetIdGet(marketId);
+        console.log("Fetching slot data for market ID:", marketId);
         const slotresponse = await slotapi.slotsProviderGetIdGet(marketId);
-        console.log("slotresponse :", slotresponse.data);
+        const market = new MarketApi(config);
+        const marketresponse = await market.marketsGetIdGet(marketId);
+        console.log("Market response:", marketresponse.data);
+        console.log("Slot response:", slotresponse.data);
 
-        const apiResponse = response.data as ApiResponse;
-        if (apiResponse.status === "success" && apiResponse.data.length > 0) {
-          setMarket(apiResponse.data[0]);
+        if (
+          (slotresponse.data && Array.isArray(slotresponse.data)) ||
+          marketresponse.data
+        ) {
+          const convertedSlots = slotresponse.data.map(convertToSlot);
+
+          const marketNames = marketresponse.data.data?.map(
+            (market) => market.name
+          );
+
+          setSlots(convertedSlots);
+          setMarketName(marketNames?.[0] || "Unknown Market");
         } else {
-          setError("No market data found in the response.");
+          setError("No slot data found in the response.");
         }
       } catch (err) {
-        console.error("Error fetching market details:", err);
-        setError("Failed to fetch market details. Please try again later.");
+        console.error("Error fetching slot details:", err);
+        setError("Failed to fetch slot details. Please try again later.");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchMarketData();
+    fetchSlotData();
   }, [location.state, token]);
-
   const filteredSlots = useCallback(() => {
-    if (!market) return [];
-    return market.slots.filter((slot: Slot) => {
+    return slots.filter((slot: Slot) => {
       if (dateRange.startDate && dateRange.endDate) {
         const slotDate = moment(slot.date).startOf("day");
         const startDate = dateRange.startDate.startOf("day");
@@ -141,7 +133,7 @@ const GeneratedZonesPage: React.FC = () => {
       }
       return true;
     });
-  }, [market, dateRange]);
+  }, [slots, dateRange]);
 
   const groupedSlots = useCallback(() => {
     const groups: { [key: string]: Slot[] } = {};
@@ -254,13 +246,13 @@ const GeneratedZonesPage: React.FC = () => {
     );
   }
 
-  if (!market || market.slots.length === 0) {
+  if (slots.length === 0) {
     return (
       <Box minH="calc(100vh - 60px)" bg="gray.100" p={8}>
         <Alert status="info">
           <AlertIcon />
-          No slots have been generated yet. Please go to the Configure Layout
-          page to generate slots.
+          No slots have been created yet. Please go to the Configure Layout page
+          to create slots.
         </Alert>
         <Button mt={4} onClick={() => navigate(-1)}>
           Go Back
@@ -272,7 +264,7 @@ const GeneratedZonesPage: React.FC = () => {
   return (
     <Box minH="calc(100vh - 60px)" bg="gray.100" p={8}>
       <Heading as="h1" size="xl" textAlign="center" mb={8}>
-        Generated Slots for {market.name}
+        List Slots for {marketName}
       </Heading>
 
       <DateRangePicker

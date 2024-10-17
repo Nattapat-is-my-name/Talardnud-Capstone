@@ -317,6 +317,7 @@ export interface DtosMarketRequest {
  * @interface DtosMarketResponse
  */
 export interface DtosMarketResponse {
+    [x: string]: any;
     /**
      * the data to be returned
      * @type {Array<EntitiesMarket>}
