@@ -13,22 +13,19 @@ import {
   AlertDescription,
   Code,
   Button,
-  SimpleGrid,
   Container,
   Flex,
   Badge,
   useColorModeValue,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalCloseButton,
-  ModalBody,
   Card,
   CardBody,
   CardHeader,
   Icon,
   Stack,
   Image,
+  Tooltip,
+  BoxProps,
+  Select,
 } from "@chakra-ui/react";
 import {
   FaMapMarkerAlt,
@@ -38,11 +35,12 @@ import {
   FaPlus,
 } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
-import { motion } from "framer-motion";
+import { isValidMotionProp, motion, MotionProps } from "framer-motion";
 import { DateRangePicker } from "react-dates";
 import moment, { Moment } from "moment";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
+import { EditIcon } from "@chakra-ui/icons";
 
 export type MotionBoxProps = BoxProps & MotionProps;
 
@@ -55,7 +53,6 @@ export const MotionBox = React.forwardRef<HTMLDivElement, MotionBoxProps>(
   }
 );
 
-
 const MarketDetail: React.FC = () => {
   const { marketId } = useParams<{ marketId: string }>();
   const { isAuthenticated, token, providerId } = useAuth();
@@ -63,6 +60,8 @@ const MarketDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<string>(""); // State to store selected date
+  const [selectedZone, setSelectedZone] = useState<string>(""); // State to store selected zone
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -80,24 +79,14 @@ const MarketDetail: React.FC = () => {
   const cardBgColor = useColorModeValue("white", "gray.800");
 
   useEffect(() => {
-    if (isAuthenticated && token && providerId) {
-      fetchMarketDetails();
-    } else {
-      setError("Authentication information or market ID is missing.");
-      setDebugInfo(
-        `isAuthenticated: ${isAuthenticated}, token: ${
-          token ? "exists" : "missing"
-        }, providerId: ${providerId}`
-      );
-      setIsLoading(false);
-    }
-  }, [isAuthenticated, token, providerId]);
+    refetchMarketDetails();
+  }, [isAuthenticated, token, providerId, marketId]);
 
-  const fetchMarketDetails = async () => {
-    if (!token || !providerId) {
+  const refetchMarketDetails = async () => {
+    if (!token || !marketId) {
       setError("Authentication information or market ID is missing.");
       setDebugInfo(
-        `token: ${token ? "exists" : "missing"}, providerId: ${providerId}`
+        `token: ${token ? "exists" : "missing"}, marketId: ${marketId}`
       );
       setIsLoading(false);
       return;
@@ -111,7 +100,8 @@ const MarketDetail: React.FC = () => {
         accessToken: token,
       });
       const api = new MarketApi(config);
-      const response = await api.marketsProviderGetIdGet(providerId);
+      console.log("Fetching market details for marketId :", marketId);
+      const response = await api.marketsGetIdGet(marketId);
       console.log("API Response:", response);
       setDebugInfo(JSON.stringify(response, null, 2));
 
@@ -137,6 +127,14 @@ const MarketDetail: React.FC = () => {
     }
   };
 
+  const handleEditProfile = () => {
+    if (market) {
+      navigate(`/markets/${market.id}/edit`);
+    } else {
+      console.error("Cannot edit profile: market is null");
+    }
+  };
+
   // Group slots by date and then by zone
   const groupedSlots =
     market?.slots?.reduce((acc, slot) => {
@@ -148,14 +146,29 @@ const MarketDetail: React.FC = () => {
       return acc;
     }, {} as Record<string, Record<string, EntitiesSlot[]>>) || {};
 
-  // Filter slots by date range
-  const filteredDates = Object.keys(groupedSlots).filter((date) => {
-    if (startDate && endDate) {
+  // Find the closest upcoming date
+  const today = moment();
+  const allDates = Object.keys(groupedSlots)
+    .filter((date) => {
       const slotDate = moment(date);
-      return slotDate.isBetween(startDate, endDate, "day", "[]");
+      if (startDate && endDate) {
+        return slotDate.isBetween(startDate, endDate, "day", "[]");
+      }
+      return slotDate.isSameOrAfter(today); // Only consider future or today dates
+    })
+    .sort((a, b) => moment(a).diff(moment(b))); // Sort all dates
+
+  // Get all unique zones
+  const allZones = Array.from(
+    new Set(market?.slots?.map((slot) => slot.zone || "Uncategorized") || [])
+  ).sort();
+
+  // Default the selected date to the closest date or the first available date
+  useEffect(() => {
+    if (allDates.length > 0 && !selectedDate) {
+      setSelectedDate(allDates[0]);
     }
-    return true; // Show all dates if no range is selected
-  });
+  }, [allDates, selectedDate]);
 
   if (isLoading) {
     return (
@@ -209,9 +222,18 @@ const MarketDetail: React.FC = () => {
       <VStack spacing={8} align="stretch">
         <Card bg={cardBgColor} shadow="md">
           <CardHeader>
-            <Heading as="h1" size="2xl">
-              {market.name}
-            </Heading>
+            <Flex justify="space-between" align="center">
+              <Heading as="h1" size="2xl">
+                {market.name}
+              </Heading>
+              <Button
+                leftIcon={<Icon as={EditIcon} />}
+                colorScheme="blue"
+                onClick={handleEditProfile}
+              >
+                Edit Profile
+              </Button>
+            </Flex>
           </CardHeader>
           <CardBody>
             <Stack direction={["column", "row"]} spacing={8}>
@@ -249,103 +271,7 @@ const MarketDetail: React.FC = () => {
           </CardBody>
         </Card>
 
-        <Flex align="center" justify="space-between" mb={4}>
-          <Box>
-            <DateRangePicker
-              startDate={startDate}
-              startDateId="start-date-id"
-              endDate={endDate}
-              endDateId="end-date-id"
-              onDatesChange={({ startDate, endDate }) => {
-                setStartDate(startDate);
-                setEndDate(endDate);
-              }}
-              focusedInput={focusedInput}
-              onFocusChange={(focusedInput) => setFocusedInput(focusedInput)}
-              isOutsideRange={() => false} // Allow past dates
-              displayFormat="YYYY-MM-DD"
-            />
-          </Box>
-
-          <Button
-            colorScheme="blue"
-            onClick={handleCreateStall}
-            leftIcon={<Icon as={FaPlus} />}
-            ml={4} // Adds space between DateRangePicker and Button
-          >
-            Create Stalls
-          </Button>
-        </Flex>
-
-        {/* Render grouped stalls by date and zone */}
-        {filteredDates.length > 0 ? (
-          filteredDates.map((date) => (
-            <Box key={date} mb={8}>
-              <Heading as="h2" size="xl" mb={4}>
-                {moment(date).format("MMMM D, YYYY")}
-              </Heading>
-
-              {Object.entries(groupedSlots[date]).map(([zoneName, slots]) => (
-                <Card key={zoneName} bg={cardBgColor} shadow="md" mb={4}>
-                  <CardHeader>
-                    <Flex justify="space-between" align="center">
-                      <Heading as="h3" size="lg">
-                        Zone {zoneName}
-                      </Heading>
-                      <Text>Number of Stalls: {slots.length}</Text>
-                    </Flex>
-                  </CardHeader>
-                  <CardBody>
-                    <SimpleGrid columns={[1, 2, 3, 4]} spacing={8}>
-                      {slots.map((slot, index) => (
-                        <motion.div key={index} whileHover={{ scale: 1.02 }}>
-                          <Box
-                            borderWidth="1px"
-                            borderRadius="lg"
-                            p={4}
-                            boxShadow="md"
-                            bg={bgColor}
-                          >
-                            <Heading as="h4" size="md" mb={2}>
-                              Slot {slot.name}
-                            </Heading>
-                            <VStack align="start" spacing={2}>
-                              <Text>
-                                <strong>Width:</strong> {slot.width} meters
-                              </Text>
-                              <Text>
-                                <strong>Height:</strong> {slot.height} meters
-                              </Text>
-                              <Text>
-                                <strong>Price:</strong> ${slot.price}
-                              </Text>
-                              <Badge colorScheme="green">Available</Badge>
-                            </VStack>
-                          </Box>
-                        </motion.div>
-                      ))}
-                    </SimpleGrid>
-                  </CardBody>
-                </Card>
-              ))}
-            </Box>
-          ))
-        ) : (
-          <Alert status="info">
-            <AlertIcon />
-            No stalls are available for the selected date range.
-          </Alert>
-        )}
-      </VStack>
-    </Container>
-  );
-};
-
-export default MarketDetail;
-
-
-
-<Card bg={cardBgColor} shadow="md">
+        <Card bg={cardBgColor} shadow="md">
           <CardHeader>
             <Heading as="h2" size="xl">
               Market Layout
@@ -391,8 +317,135 @@ export default MarketDetail;
             ) : (
               <Alert status="info">
                 <AlertIcon />
-                No layout image available for this market.
+                No layout image available for this market. Please upload
               </Alert>
             )}
           </CardBody>
         </Card>
+
+        <Flex align="center" justify="space-between" mb={4}>
+          <Box>
+            <DateRangePicker
+              startDate={startDate}
+              startDateId="start-date-id"
+              endDate={endDate}
+              endDateId="end-date-id"
+              onDatesChange={({ startDate, endDate }) => {
+                setStartDate(startDate);
+                setEndDate(endDate);
+              }}
+              focusedInput={focusedInput}
+              onFocusChange={(focusedInput) => setFocusedInput(focusedInput)}
+              isOutsideRange={() => false} // Allow past dates
+              displayFormat="YYYY-MM-DD"
+            />
+          </Box>
+
+          <Flex align="center">
+            <Button
+              colorScheme="blue"
+              onClick={() => {
+                navigate("/generated-zones", { state: { marketId: marketId } });
+              }}
+              leftIcon={<Icon as={EditIcon} />}
+              ml={4}
+            >
+              Edit Stall
+            </Button>
+
+            <Button
+              colorScheme="blue"
+              onClick={handleCreateStall}
+              leftIcon={<Icon as={FaPlus} />}
+              ml={4} // Adds space between DateRangePicker and Button
+            >
+              Create Stalls
+            </Button>
+          </Flex>
+        </Flex>
+
+        {/* Dropdown for selecting dates */}
+        <Select
+          placeholder="Select date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          mb={4}
+        >
+          {allDates.map((date) => (
+            <option key={date} value={date}>
+              {moment(date).format("MMMM D, YYYY")}
+            </option>
+          ))}
+        </Select>
+
+        {/* Dropdown for selecting zones */}
+        <Select
+          placeholder="Select zone"
+          value={selectedZone}
+          onChange={(e) => setSelectedZone(e.target.value)}
+          mb={4}
+        >
+          <option value="">All Zones</option>
+          {allZones.map((zone) => (
+            <option key={zone} value={zone}>
+              {zone}
+            </option>
+          ))}
+        </Select>
+
+        {/* Render grouped stalls by selected date and zone */}
+        {selectedDate && groupedSlots[selectedDate] ? (
+          <Box key={selectedDate} mb={8}>
+            <Heading as="h2" size="xl" mb={4}>
+              {moment(selectedDate).format("MMMM D, YYYY")}
+            </Heading>
+
+            {Object.entries(groupedSlots[selectedDate])
+              .filter(
+                ([zoneName]) => selectedZone === "" || zoneName === selectedZone
+              )
+              .map(([zoneName, slots]) => (
+                 <GridItem key={zone.id}>
+                    <Box
+                      borderWidth="1px"
+                      p={6}
+                      borderRadius="lg"
+                      borderColor={borderColor}
+                    >
+                      <Heading as="h4" size="md" mb={3} fontWeight="semibold">
+                        Zone {zone.zone}
+                      </Heading>
+                      <Text fontSize="sm" mb={2}>
+                        <Text as="span" fontWeight="medium">
+                          Date:
+                        </Text>{" "}
+                        {zone.date.toDateString()}
+                      </Text>
+                      <Text fontSize="sm" mb={2}>
+                        <Text as="span" fontWeight="medium">
+                          Number of Stalls:
+                        </Text>{" "}
+                        {zone.stalls.length}
+                      </Text>
+                      <Text fontSize="sm">
+                        <Text as="span" fontWeight="medium">
+                          Stall Names:
+                        </Text>{" "}
+                        {zone.stalls.map((s) => s.name).join(", ")}
+                      </Text>
+                    </Box>
+                  </GridItem>
+              ))}
+          </Box>
+        ) : (
+          <Alert status="info">
+            <AlertIcon />
+            No stalls are available for the selected date and zone.
+          </Alert>
+        )}
+      </VStack>
+    </Container>
+  );
+};
+
+export default MarketDetail;

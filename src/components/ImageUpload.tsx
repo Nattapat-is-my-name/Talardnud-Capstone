@@ -5,37 +5,40 @@ import {
   Input,
   Image,
   useDisclosure,
-  Heading,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalBody,
-  ModalCloseButton,
   VStack,
   Button,
   FormControl,
   FormLabel,
   Flex,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalBody,
+  ModalCloseButton,
 } from "@chakra-ui/react";
 
 interface ImageUploadProps {
-  selectedImage: string | null;
-  setSelectedImage: React.Dispatch<React.SetStateAction<string | null>>;
+  selectedImage: string | undefined;
+  setSelectedImage: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
   selectedImage,
   setSelectedImage,
 }) => {
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | undefined>(undefined);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setFileName(file.name);
-      const imageUrl = URL.createObjectURL(file);
-      setSelectedImage(imageUrl);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setSelectedImage(base64String);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -47,11 +50,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
   return (
     <VStack spacing={8} align="stretch" height="100%">
-      <Heading as="h2" size="xl">
-        Layout Upload
-      </Heading>
       <FormControl>
-        <FormLabel fontSize="xl">Choose a layout image</FormLabel>
+        <FormLabel fontSize="xl">Choose a market image</FormLabel>
         <Input
           type="file"
           accept="image/*"
@@ -84,17 +84,6 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           />
         </Box>
       )}
-      <Button
-        onClick={onOpen}
-        isDisabled={!selectedImage}
-        colorScheme="blue"
-        size="lg"
-        height="60px"
-        fontSize="xl"
-        _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
-      >
-        View Full Image
-      </Button>
       <Modal isOpen={isOpen} onClose={onClose} size="full">
         <ModalOverlay />
         <ModalContent bg="rgba(0,0,0,0.0)">

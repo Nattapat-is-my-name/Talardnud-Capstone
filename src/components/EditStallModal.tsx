@@ -18,7 +18,8 @@ interface EditStallModalProps {
   slot: Slot | null;
   zoneId: string | null;
   onSave: (zoneId: string, updatedSlot: Slot) => void;
-  onDelete: (zoneId: string, slotId: string) => void;
+  onDelete: (slotId: string) => Promise<void>;
+  refetchMarketDetails: () => Promise<void>;
 }
 
 const EditStallModal: React.FC<EditStallModalProps> = ({
@@ -28,6 +29,7 @@ const EditStallModal: React.FC<EditStallModalProps> = ({
   zoneId,
   onSave,
   onDelete,
+  refetchMarketDetails,
 }) => {
   if (!slot || !zoneId) return null;
 
@@ -44,11 +46,9 @@ const EditStallModal: React.FC<EditStallModalProps> = ({
             isEditing={true}
             onEdit={() => {}}
             onSave={onSave}
-            onDelete={() => {
-              onDelete(zoneId, slot.id);
-              onClose();
-            }}
+            onDelete={onDelete}
             onCancelEdit={onClose}
+            refetchMarketDetails={refetchMarketDetails}
           />
         </ModalBody>
         <ModalFooter>

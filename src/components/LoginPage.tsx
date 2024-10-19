@@ -49,7 +49,7 @@ const LoginPage = () => {
           duration: 5000,
           isClosable: true,
         });
-        navigate("/configure");
+        navigate("/market");
       } else {
         throw new Error("Invalid login response");
       }

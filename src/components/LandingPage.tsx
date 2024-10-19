@@ -13,14 +13,14 @@ const LandingPage: React.FC = () => {
     >
       <VStack spacing={8} textAlign="center">
         <Heading as="h1" size="2xl">
-          Welcome to Market Layout Configuration
+          Welcome to TLN Admin Portal
         </Heading>
         <Text fontSize="xl">
           Design and manage your market layout with ease. Configure zones,
           organize stalls, and visualize your market setup.
         </Text>
-        <Button as={RouterLink} to="/configure" colorScheme="blue" size="lg">
-          Start Configuring
+        <Button as={RouterLink} to="/market" colorScheme="blue" size="lg">
+          Go to your Market
         </Button>
       </VStack>
     </Box>

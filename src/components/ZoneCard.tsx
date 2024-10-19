@@ -68,9 +68,9 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
         <Button
           size="sm"
           colorScheme="red"
-          onClick={() => onDeleteZone(slot.zone)}
+          onClick={() => onDeleteZone(slot.id)}
         >
-          Delete Zone
+          Delete {slot.name}
         </Button>
       </VStack>
     </Box>

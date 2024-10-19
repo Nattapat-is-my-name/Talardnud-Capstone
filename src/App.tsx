@@ -19,6 +19,7 @@ import "./App.css";
 import MarketPage from "./components/MarketPage";
 import MarketDetail from "./components/MarketDetail";
 import SlotPage from "./components/SlotPage";
+import EditMarketPage from "./components/EditMarketPage";
 
 function App() {
   return (
@@ -43,6 +44,10 @@ function App() {
                   <Route
                     path="/market/:marketId/slots"
                     element={<SlotPage />}
+                  />
+                  <Route
+                    path="/markets/:marketId/edit"
+                    element={<EditMarketPage />}
                   />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />

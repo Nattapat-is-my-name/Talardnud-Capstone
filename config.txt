@@ -10,7 +10,12 @@ import {
   useColorModeValue,
   useToast,
   Button,
+  UnorderedList,
+  HStack,
+  ListItem,
+  ListIcon,
 } from "@chakra-ui/react";
+import { CheckCircleIcon } from "@chakra-ui/icons";
 import ImageUpload from "./ImageUpload";
 import UserForm from "./UserForm";
 import { useMarket } from "../contexts/MarketProvider";
@@ -158,6 +163,7 @@ const ConfigurePage: React.FC = () => {
                   onClick={handleMarketUpdate}
                   isDisabled={!marketDetails}
                   width="100%"
+                  p={6}
                 >
                   Update Layout Image
                 </Button>
@@ -180,48 +186,61 @@ const ConfigurePage: React.FC = () => {
           </Grid>
 
           {zones.length > 0 && (
-            <Box
-              w="full"
-              bg={cardBgColor}
-              p={8}
-              rounded="xl"
-              shadow="md"
-              borderWidth="1px"
-              borderColor={borderColor}
-            >
+            <Box w="full">
               <Heading as="h3" size="lg" mb={6} fontWeight="semibold">
                 Generated Zones
               </Heading>
-              <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={6}>
+              <Grid
+                templateColumns={{
+                  base: "1fr",
+                  md: "repeat(2, 1fr)",
+                  lg: "repeat(3, 1fr)",
+                }}
+                gap={6}
+              >
                 {zones.map((zone) => (
                   <GridItem key={zone.id}>
                     <Box
                       borderWidth="1px"
-                      p={6}
                       borderRadius="lg"
                       borderColor={borderColor}
+                      overflow="hidden"
                     >
-                      <Heading as="h4" size="md" mb={3} fontWeight="semibold">
-                        Zone {zone.zone}
-                      </Heading>
-                      <Text fontSize="sm" mb={2}>
-                        <Text as="span" fontWeight="medium">
-                          Date:
-                        </Text>{" "}
-                        {zone.date.toDateString()}
-                      </Text>
-                      <Text fontSize="sm" mb={2}>
-                        <Text as="span" fontWeight="medium">
-                          Number of Stalls:
-                        </Text>{" "}
-                        {zone.stalls.length}
-                      </Text>
-                      <Text fontSize="sm">
-                        <Text as="span" fontWeight="medium">
-                          Stall Names:
-                        </Text>{" "}
-                        {zone.stalls.map((s) => s.name).join(", ")}
-                      </Text>
+                      <Box
+                        p={6}
+                        bg={cardBgColor}
+                        borderBottomWidth="1px"
+                        borderColor={borderColor}
+                      >
+                        <Heading as="h4" size="md" mb={3} fontWeight="semibold">
+                          Zone {zone.zone}
+                        </Heading>
+                        <Text fontSize="sm" mb={2}>
+                          <Text as="span" fontWeight="medium">
+                            Date:
+                          </Text>{" "}
+                          {zone.date.toDateString()}
+                        </Text>
+                        <Text fontSize="sm">
+                          <Text as="span" fontWeight="medium">
+                            Number of Stalls:
+                          </Text>{" "}
+                          {zone.stalls.length}
+                        </Text>
+                      </Box>
+                      <Box p={6} maxH="300px" overflowY="auto">
+                        <UnorderedList spacing={2}>
+                          {zone.stalls.map((stall) => (
+                            <ListItem key={stall.id}>
+                              <ListIcon
+                                as={CheckCircleIcon}
+                                color="green.500"
+                              />
+                              {stall.name}
+                            </ListItem>
+                          ))}
+                        </UnorderedList>
+                      </Box>
                     </Box>
                   </GridItem>
                 ))}

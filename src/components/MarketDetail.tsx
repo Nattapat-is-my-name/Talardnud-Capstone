@@ -18,11 +18,6 @@ import {
   Flex,
   Badge,
   useColorModeValue,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalCloseButton,
-  ModalBody,
   Card,
   CardBody,
   CardHeader,
@@ -31,6 +26,7 @@ import {
   Image,
   Tooltip,
   BoxProps,
+  Select,
 } from "@chakra-ui/react";
 import {
   FaMapMarkerAlt,
@@ -65,6 +61,8 @@ const MarketDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<string>(""); // State to store selected date
+  const [selectedZone, setSelectedZone] = useState<string | null>(null); // State to store selected zone
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -82,20 +80,10 @@ const MarketDetail: React.FC = () => {
   const cardBgColor = useColorModeValue("white", "gray.800");
 
   useEffect(() => {
-    if (isAuthenticated && token && marketId) {
-      fetchMarketDetails();
-    } else {
-      setError("Authentication information or market ID is missing.");
-      setDebugInfo(
-        `isAuthenticated: ${isAuthenticated}, token: ${
-          token ? "exists" : "missing"
-        }, providerId: ${providerId}`
-      );
-      setIsLoading(false);
-    }
-  }, [isAuthenticated, token, providerId]);
+    refetchMarketDetails();
+  }, [isAuthenticated, token, providerId, marketId]);
 
-  const fetchMarketDetails = async () => {
+  const refetchMarketDetails = async () => {
     if (!token || !marketId) {
       setError("Authentication information or market ID is missing.");
       setDebugInfo(
@@ -140,6 +128,14 @@ const MarketDetail: React.FC = () => {
     }
   };
 
+  const handleEditProfile = () => {
+    if (market) {
+      navigate(`/markets/${market.id}/edit`);
+    } else {
+      console.error("Cannot edit profile: market is null");
+    }
+  };
+
   // Group slots by date and then by zone
   const groupedSlots =
     market?.slots?.reduce((acc, slot) => {
@@ -151,14 +147,24 @@ const MarketDetail: React.FC = () => {
       return acc;
     }, {} as Record<string, Record<string, EntitiesSlot[]>>) || {};
 
-  // Filter slots by date range
-  const filteredDates = Object.keys(groupedSlots).filter((date) => {
-    if (startDate && endDate) {
+  // Find the closest upcoming date
+  const today = moment();
+  const allDates = Object.keys(groupedSlots)
+    .filter((date) => {
       const slotDate = moment(date);
-      return slotDate.isBetween(startDate, endDate, "day", "[]");
+      if (startDate && endDate) {
+        return slotDate.isBetween(startDate, endDate, "day", "[]");
+      }
+      return slotDate.isSameOrAfter(today); // Only consider future or today dates
+    })
+    .sort((a, b) => moment(a).diff(moment(b))); // Sort all dates
+
+  // Default the selected date to the closest date or the first available date
+  useEffect(() => {
+    if (allDates.length > 0 && !selectedDate) {
+      setSelectedDate(allDates[0]);
     }
-    return true; // Show all dates if no range is selected
-  });
+  }, [allDates, selectedDate]);
 
   if (isLoading) {
     return (
@@ -212,9 +218,18 @@ const MarketDetail: React.FC = () => {
       <VStack spacing={8} align="stretch">
         <Card bg={cardBgColor} shadow="md">
           <CardHeader>
-            <Heading as="h1" size="2xl">
-              {market.name}
-            </Heading>
+            <Flex justify="space-between" align="center">
+              <Heading as="h1" size="2xl">
+                {market.name}
+              </Heading>
+              <Button
+                leftIcon={<Icon as={EditIcon} />}
+                colorScheme=""
+                onClick={handleEditProfile}
+              >
+                Edit Profile
+              </Button>
+            </Flex>
           </CardHeader>
           <CardBody>
             <Stack direction={["column", "row"]} spacing={8}>
@@ -304,24 +319,7 @@ const MarketDetail: React.FC = () => {
           </CardBody>
         </Card>
 
-        <Flex align="center" justify="space-between" mb={4}>
-          <Box>
-            <DateRangePicker
-              startDate={startDate}
-              startDateId="start-date-id"
-              endDate={endDate}
-              endDateId="end-date-id"
-              onDatesChange={({ startDate, endDate }) => {
-                setStartDate(startDate);
-                setEndDate(endDate);
-              }}
-              focusedInput={focusedInput}
-              onFocusChange={(focusedInput) => setFocusedInput(focusedInput)}
-              isOutsideRange={() => false} // Allow past dates
-              displayFormat="YYYY-MM-DD"
-            />
-          </Box>
-
+        <Flex align="center" justify="flex-end" mb={4}>
           <Flex align="center">
             <Button
               colorScheme="blue"
@@ -345,22 +343,87 @@ const MarketDetail: React.FC = () => {
           </Flex>
         </Flex>
 
-        {/* Render grouped stalls by date and zone */}
-        {filteredDates.length > 0 ? (
-          filteredDates.map((date) => (
-            <Box key={date} mb={8}>
-              <Heading as="h2" size="xl" mb={4}>
+        {/* Dropdown for selecting dates */}
+        <Flex align="center" justify="space-between" mb={4}>
+          <Select
+            placeholder="Select date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            variant="filled"
+            borderRadius="md"
+            bg={cardBgColor}
+            _hover={{ bg: "gray.200" }}
+            _focus={{ boxShadow: "outline" }}
+          >
+            {allDates.map((date) => (
+              <option key={date} value={date}>
                 {moment(date).format("MMMM D, YYYY")}
-              </Heading>
+              </option>
+            ))}
+          </Select>
+          <Select
+            placeholder="All Zones"
+            value={selectedZone || ""}
+            onChange={(e) => setSelectedZone(e.target.value || null)}
+            variant="filled"
+            borderRadius="md"
+            bg={cardBgColor}
+            _hover={{ bg: "gray.200" }}
+            _focus={{ boxShadow: "outline" }}
+          >
+            {Object.keys(groupedSlots[selectedDate] || {}).map((zoneName) => (
+              <option key={zoneName} value={zoneName}>
+                Zone {zoneName} ({groupedSlots[selectedDate][zoneName].length})
+              </option>
+            ))}
+          </Select>
+        </Flex>
 
-              {Object.entries(groupedSlots[date]).map(([zoneName, slots]) => (
+        {/* Render grouped stalls by selected date and zone */}
+        {selectedDate && groupedSlots[selectedDate] && (
+          <Box key={selectedDate} mb={8}>
+            <Flex justify="space-between" align="center" mb={4}>
+              <Heading as="h2" size="xl" mb={4}>
+                {moment(selectedDate).format("MMMM D, YYYY")}
+              </Heading>
+              <Flex justify="space-between" align="center" mb={4}>
+                <Text pr={5} fontWeight="bold">
+                  Total Zones: {Object.keys(groupedSlots[selectedDate]).length}
+                </Text>
+                <Text fontWeight="bold">
+                  Total Stalls:{" "}
+                  {Object.values(groupedSlots[selectedDate]).reduce(
+                    (total, slots) => total + slots.length,
+                    0
+                  )}
+                </Text>
+              </Flex>
+            </Flex>
+
+            {Object.entries(groupedSlots[selectedDate])
+              .filter(([zoneName]) =>
+                selectedZone ? zoneName === selectedZone : true
+              )
+              .map(([zoneName, slots]) => (
                 <Card key={zoneName} bg={cardBgColor} shadow="md" mb={4}>
                   <CardHeader>
                     <Flex justify="space-between" align="center">
                       <Heading as="h3" size="lg">
                         Zone {zoneName}
                       </Heading>
-                      <Text>Number of Stalls: {slots.length}</Text>
+                      <Text>
+                        Available:{" "}
+                        {
+                          slots.filter((slot) => slot.status === "available")
+                            .length
+                        }{" "}
+                        / Booked:{" "}
+                        {
+                          slots.filter((slot) => slot.status === "booked")
+                            .length
+                        }{" "}
+                        / Total: {slots.length}
+                      </Text>
                     </Flex>
                   </CardHeader>
                   <CardBody>
@@ -385,9 +448,19 @@ const MarketDetail: React.FC = () => {
                                 <strong>Height:</strong> {slot.height} meters
                               </Text>
                               <Text>
+                                <strong>Category:</strong> {slot.category}
+                              </Text>
+                              <Text>
                                 <strong>Price:</strong> ${slot.price}
                               </Text>
-                              <Badge colorScheme="green">Available</Badge>
+
+                              <Badge
+                                colorScheme={
+                                  slot.status === "available" ? "green" : "red"
+                                }
+                              >
+                                {slot.status}
+                              </Badge>
                             </VStack>
                           </Box>
                         </motion.div>
@@ -396,13 +469,7 @@ const MarketDetail: React.FC = () => {
                   </CardBody>
                 </Card>
               ))}
-            </Box>
-          ))
-        ) : (
-          <Alert status="info">
-            <AlertIcon />
-            No stalls are available for the selected date range.
-          </Alert>
+          </Box>
         )}
       </VStack>
     </Container>

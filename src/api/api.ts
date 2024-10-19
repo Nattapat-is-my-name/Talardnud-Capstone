@@ -222,6 +222,79 @@ export interface DtosLayoutRequest {
 /**
  * 
  * @export
+ * @interface DtosMarketEditRequest
+ */
+export interface DtosMarketEditRequest {
+    /**
+     * Required, address of the market
+     * @type {string}
+     * @memberof DtosMarketEditRequest
+     */
+    'address': string;
+    /**
+     * Required, closing time in HH:mm format
+     * @type {string}
+     * @memberof DtosMarketEditRequest
+     */
+    'close_time': string;
+    /**
+     * Optional, description of the market
+     * @type {string}
+     * @memberof DtosMarketEditRequest
+     */
+    'description'?: string;
+    /**
+     * Optional, URL or path to the market image
+     * @type {string}
+     * @memberof DtosMarketEditRequest
+     */
+    'image'?: string;
+    /**
+     * Optional, latitude coordinate
+     * @type {string}
+     * @memberof DtosMarketEditRequest
+     */
+    'latitude'?: string;
+    /**
+     * Optional, URL or path to the market layout image
+     * @type {string}
+     * @memberof DtosMarketEditRequest
+     */
+    'layout_image'?: string;
+    /**
+     * Optional, longitude coordinate
+     * @type {string}
+     * @memberof DtosMarketEditRequest
+     */
+    'longitude'?: string;
+    /**
+     * Required, name of the market
+     * @type {string}
+     * @memberof DtosMarketEditRequest
+     */
+    'name': string;
+    /**
+     * Required, opening time in HH:mm format
+     * @type {string}
+     * @memberof DtosMarketEditRequest
+     */
+    'open_time': string;
+    /**
+     * Optional, phone number of the market
+     * @type {string}
+     * @memberof DtosMarketEditRequest
+     */
+    'phone'?: string;
+    /**
+     * Required, UUID of the provider
+     * @type {string}
+     * @memberof DtosMarketEditRequest
+     */
+    'provider_id': string;
+}
+/**
+ * 
+ * @export
  * @interface DtosMarketProviderRequest
  */
 export interface DtosMarketProviderRequest {
@@ -317,7 +390,6 @@ export interface DtosMarketRequest {
  * @interface DtosMarketResponse
  */
 export interface DtosMarketResponse {
-    [x: string]: any;
     /**
      * the data to be returned
      * @type {Array<EntitiesMarket>}
@@ -437,6 +509,51 @@ export interface DtosRegisterResponse {
      */
     'username'?: string;
 }
+/**
+ * 
+ * @export
+ * @interface DtosSlotUpdateDTO
+ */
+export interface DtosSlotUpdateDTO {
+    /**
+     * 
+     * @type {EntitiesCategory}
+     * @memberof DtosSlotUpdateDTO
+     */
+    'category'?: EntitiesCategory;
+    /**
+     * 
+     * @type {number}
+     * @memberof DtosSlotUpdateDTO
+     */
+    'height'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof DtosSlotUpdateDTO
+     */
+    'name'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof DtosSlotUpdateDTO
+     */
+    'price'?: number;
+    /**
+     * 
+     * @type {EntitiesSlotStatus}
+     * @memberof DtosSlotUpdateDTO
+     */
+    'status'?: EntitiesSlotStatus;
+    /**
+     * 
+     * @type {number}
+     * @memberof DtosSlotUpdateDTO
+     */
+    'width'?: number;
+}
+
+
 /**
  * 
  * @export
@@ -1784,6 +1901,46 @@ export const MarketApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
+         * Edit a market
+         * @summary Edit a market
+         * @param {string} id Market ID
+         * @param {DtosMarketEditRequest} market Market object that needs to be updated
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        marketsEditIdPatch: async (id: string, market: DtosMarketEditRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('marketsEditIdPatch', 'id', id)
+            // verify required parameter 'market' is not null or undefined
+            assertParamExists('marketsEditIdPatch', 'market', market)
+            const localVarPath = `/markets/edit/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(market, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Get all markets
          * @param {*} [options] Override http request option.
@@ -1905,6 +2062,20 @@ export const MarketApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Edit a market
+         * @summary Edit a market
+         * @param {string} id Market ID
+         * @param {DtosMarketEditRequest} market Market object that needs to be updated
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async marketsEditIdPatch(id: string, market: DtosMarketEditRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EntitiesMarket>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.marketsEditIdPatch(id, market, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MarketApi.marketsEditIdPatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Get all markets
          * @param {*} [options] Override http request option.
@@ -1963,6 +2134,17 @@ export const MarketApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.marketsCreatePost(market, options).then((request) => request(axios, basePath));
         },
         /**
+         * Edit a market
+         * @summary Edit a market
+         * @param {string} id Market ID
+         * @param {DtosMarketEditRequest} market Market object that needs to be updated
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        marketsEditIdPatch(id: string, market: DtosMarketEditRequest, options?: RawAxiosRequestConfig): AxiosPromise<EntitiesMarket> {
+            return localVarFp.marketsEditIdPatch(id, market, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary Get all markets
          * @param {*} [options] Override http request option.
@@ -2014,6 +2196,19 @@ export class MarketApi extends BaseAPI {
     }
 
     /**
+     * Edit a market
+     * @summary Edit a market
+     * @param {string} id Market ID
+     * @param {DtosMarketEditRequest} market Market object that needs to be updated
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MarketApi
+     */
+    public marketsEditIdPatch(id: string, market: DtosMarketEditRequest, options?: RawAxiosRequestConfig) {
+        return MarketApiFp(this.configuration).marketsEditIdPatch(id, market, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * 
      * @summary Get all markets
      * @param {*} [options] Override http request option.
@@ -2057,6 +2252,80 @@ export class MarketApi extends BaseAPI {
  */
 export const SlotsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * Delete slot
+         * @summary Delete slot
+         * @param {string} id Slot ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        slotsDeleteIdDelete: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('slotsDeleteIdDelete', 'id', id)
+            const localVarPath = `/slots/delete/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Edit slot
+         * @summary Edit slot
+         * @param {string} id Slot ID
+         * @param {DtosSlotUpdateDTO} updateDTO Slot update data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        slotsEditIdPatch: async (id: string, updateDTO: DtosSlotUpdateDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('slotsEditIdPatch', 'id', id)
+            // verify required parameter 'updateDTO' is not null or undefined
+            assertParamExists('slotsEditIdPatch', 'updateDTO', updateDTO)
+            const localVarPath = `/slots/edit/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * Get all slots
          * @summary Get all slots
@@ -2214,6 +2483,33 @@ export const SlotsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = SlotsApiAxiosParamCreator(configuration)
     return {
         /**
+         * Delete slot
+         * @summary Delete slot
+         * @param {string} id Slot ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async slotsDeleteIdDelete(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<string>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.slotsDeleteIdDelete(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SlotsApi.slotsDeleteIdDelete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Edit slot
+         * @summary Edit slot
+         * @param {string} id Slot ID
+         * @param {DtosSlotUpdateDTO} updateDTO Slot update data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async slotsEditIdPatch(id: string, updateDTO: DtosSlotUpdateDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EntitiesSlot>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.slotsEditIdPatch(id, updateDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SlotsApi.slotsEditIdPatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Get all slots
          * @summary Get all slots
          * @param {string} id Market ID
@@ -2278,6 +2574,27 @@ export const SlotsApiFactory = function (configuration?: Configuration, basePath
     const localVarFp = SlotsApiFp(configuration)
     return {
         /**
+         * Delete slot
+         * @summary Delete slot
+         * @param {string} id Slot ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        slotsDeleteIdDelete(id: string, options?: RawAxiosRequestConfig): AxiosPromise<string> {
+            return localVarFp.slotsDeleteIdDelete(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Edit slot
+         * @summary Edit slot
+         * @param {string} id Slot ID
+         * @param {DtosSlotUpdateDTO} updateDTO Slot update data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        slotsEditIdPatch(id: string, updateDTO: DtosSlotUpdateDTO, options?: RawAxiosRequestConfig): AxiosPromise<EntitiesSlot> {
+            return localVarFp.slotsEditIdPatch(id, updateDTO, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get all slots
          * @summary Get all slots
          * @param {string} id Market ID
@@ -2329,6 +2646,31 @@ export const SlotsApiFactory = function (configuration?: Configuration, basePath
  * @extends {BaseAPI}
  */
 export class SlotsApi extends BaseAPI {
+    /**
+     * Delete slot
+     * @summary Delete slot
+     * @param {string} id Slot ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SlotsApi
+     */
+    public slotsDeleteIdDelete(id: string, options?: RawAxiosRequestConfig) {
+        return SlotsApiFp(this.configuration).slotsDeleteIdDelete(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Edit slot
+     * @summary Edit slot
+     * @param {string} id Slot ID
+     * @param {DtosSlotUpdateDTO} updateDTO Slot update data
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SlotsApi
+     */
+    public slotsEditIdPatch(id: string, updateDTO: DtosSlotUpdateDTO, options?: RawAxiosRequestConfig) {
+        return SlotsApiFp(this.configuration).slotsEditIdPatch(id, updateDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Get all slots
      * @summary Get all slots

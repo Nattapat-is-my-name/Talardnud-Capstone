@@ -12,7 +12,11 @@ import {
   Grid,
   Center,
 } from "@chakra-ui/react";
-import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ArrowBackIcon,
+} from "@chakra-ui/icons";
 import { DateRangePicker } from "react-dates";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
@@ -67,60 +71,69 @@ const GeneratedZonesPage: React.FC = () => {
   }>({});
   const [currentPage, setCurrentPage] = useState(1);
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
+  const refetchMarketDetails = useCallback(async () => {
+    if (!token || !location.state?.marketId) {
+      console.error("Missing token or marketId:", {
+        token: !!token,
+        marketId: location.state?.marketId,
+      });
+      setError("Authentication information or market ID is missing.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const config = new Configuration({
+        basePath: process.env.REACT_APP_API_BASE_URL,
+        accessToken: token,
+      });
+      const slotapi = new SlotsApi(config);
+      console.log(
+        "Fetching slot data for market ID:",
+        location.state?.marketId
+      );
+      const slotresponse = await slotapi.slotsProviderGetIdGet(
+        location.state?.marketId
+      );
+      const market = new MarketApi(config);
+      const marketresponse = await market.marketsGetIdGet(
+        location.state?.marketId
+      );
+
+      console.log("Market response:", marketresponse.data);
+      console.log("Slot response:", slotresponse.data);
+
+      if (
+        (slotresponse.data && Array.isArray(slotresponse.data)) ||
+        marketresponse.data
+      ) {
+        const convertedSlots = slotresponse.data.map(convertToSlot);
+
+        const marketNames = marketresponse.data.data?.map(
+          (market) => market.name
+        );
+
+        setSlots(convertedSlots);
+        setMarketName(marketNames?.[0] || "Unknown Market");
+      } else {
+        setError("No slot data found in the response.");
+      }
+    } catch (err) {
+      console.error("Error fetching slot details:", err);
+      setError("Failed to fetch slot details. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token, location.state]);
+
   useEffect(() => {
-    const fetchSlotData = async () => {
-      console.log("Location state:", location.state);
-      const marketId = location.state?.marketId;
-      console.log("Market ID from state:", marketId);
+    refetchMarketDetails();
+  }, [refetchMarketDetails]);
 
-      if (!token || !marketId) {
-        console.error("Missing token or marketId:", {
-          token: !!token,
-          marketId,
-        });
-        setError("Authentication information or market ID is missing.");
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const config = new Configuration({
-          basePath: process.env.REACT_APP_API_BASE_URL,
-          accessToken: token,
-        });
-        const slotapi = new SlotsApi(config);
-        console.log("Fetching slot data for market ID:", marketId);
-        const slotresponse = await slotapi.slotsProviderGetIdGet(marketId);
-        const market = new MarketApi(config);
-        const marketresponse = await market.marketsGetIdGet(marketId);
-        console.log("Market response:", marketresponse.data);
-        console.log("Slot response:", slotresponse.data);
-
-        if (
-          (slotresponse.data && Array.isArray(slotresponse.data)) ||
-          marketresponse.data
-        ) {
-          const convertedSlots = slotresponse.data.map(convertToSlot);
-
-          const marketNames = marketresponse.data.data?.map(
-            (market) => market.name
-          );
-
-          setSlots(convertedSlots);
-          setMarketName(marketNames?.[0] || "Unknown Market");
-        } else {
-          setError("No slot data found in the response.");
-        }
-      } catch (err) {
-        console.error("Error fetching slot details:", err);
-        setError("Failed to fetch slot details. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchSlotData();
-  }, [location.state, token]);
   const filteredSlots = useCallback(() => {
     return slots.filter((slot: Slot) => {
       if (dateRange.startDate && dateRange.endDate) {
@@ -164,23 +177,8 @@ const GeneratedZonesPage: React.FC = () => {
     setExpandedDates((prev) => ({ ...prev, [dateKey]: !prev[dateKey] }));
   }, []);
 
-  const handleDeleteZone = useCallback(
-    (zoneId: string) => {
-      console.log(`Deleting zone: ${zoneId}`);
-      // Implement zone deletion logic here
-      toast({
-        title: "Zone Deleted",
-        description: `Zone ${zoneId} has been deleted.`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    },
-    [toast]
-  );
-
   const handleSaveStall = useCallback(
-    (zoneId: string, updatedSlot: Slot) => {
+    async (zoneId: string, updatedSlot: Slot) => {
       console.log(`Saving stall in zone ${zoneId}:`, updatedSlot);
       // Implement stall saving logic here
       toast({
@@ -190,23 +188,44 @@ const GeneratedZonesPage: React.FC = () => {
         duration: 3000,
         isClosable: true,
       });
+      await refetchMarketDetails();
     },
-    [toast]
+    [toast, refetchMarketDetails]
   );
 
   const handleDeleteStall = useCallback(
-    (zoneId: string, slotId: string) => {
-      console.log(`Deleting stall ${slotId} in zone ${zoneId}`);
-      // Implement stall deletion logic here
-      toast({
-        title: "Stall Deleted",
-        description: `Stall ${slotId} has been deleted from zone ${zoneId}.`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+    async (slotId: string) => {
+      console.log(`Deleting stall ${slots}`);
+      try {
+        const config = new Configuration({
+          basePath: process.env.REACT_APP_API_BASE_URL,
+        });
+        const slotsApi = new SlotsApi(config);
+
+        const response = await slotsApi.slotsDeleteIdDelete(slotId);
+        console.log("Deleted slot:", response.data);
+
+        toast({
+          title: "Stall deleted",
+          description: "The stall has been successfully deleted.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        await refetchMarketDetails();
+      } catch (error) {
+        console.error("Error deleting stall:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete the stall. Please try again.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     },
-    [toast]
+    [toast, refetchMarketDetails]
   );
 
   const handleAddStall = useCallback(
@@ -239,7 +258,7 @@ const GeneratedZonesPage: React.FC = () => {
           <AlertIcon />
           {error}
         </Alert>
-        <Button mt={4} onClick={() => navigate(-1)}>
+        <Button mt={4} leftIcon={<ArrowBackIcon />} onClick={handleGoBack}>
           Go Back
         </Button>
       </Box>
@@ -254,7 +273,7 @@ const GeneratedZonesPage: React.FC = () => {
           No slots have been created yet. Please go to the Configure Layout page
           to create slots.
         </Alert>
-        <Button mt={4} onClick={() => navigate(-1)}>
+        <Button mt={4} leftIcon={<ArrowBackIcon />} onClick={handleGoBack}>
           Go Back
         </Button>
       </Box>
@@ -263,9 +282,22 @@ const GeneratedZonesPage: React.FC = () => {
 
   return (
     <Box minH="calc(100vh - 60px)" bg="gray.100" p={8}>
-      <Heading as="h1" size="xl" textAlign="center" mb={8}>
-        List Slots for {marketName}
-      </Heading>
+      <Flex justify="space-between" align="center" mb={8}>
+        <Button
+          leftIcon={<ArrowBackIcon />}
+          onClick={handleGoBack}
+          size="lg"
+          px={6}
+          py={3}
+          fontSize="xl"
+        >
+          Back
+        </Button>
+        <Heading as="h1" size="xl" textAlign="center">
+          List Slots for {marketName}
+        </Heading>
+        <Box width={100} /> {/* This empty Box helps center the heading */}
+      </Flex>
 
       <DateRangePicker
         startDate={dateRange.startDate}
@@ -320,9 +352,9 @@ const GeneratedZonesPage: React.FC = () => {
                   >
                     <LazyZoneCard
                       slot={slot}
-                      onDeleteZone={handleDeleteZone}
                       onEditStall={handleOpenEditModal}
                       onAddStall={handleAddStall}
+                      onDeleteZone={handleDeleteStall}
                     />
                   </Suspense>
                 ))}
@@ -340,6 +372,7 @@ const GeneratedZonesPage: React.FC = () => {
           zoneId={selectedZoneId}
           onSave={handleSaveStall}
           onDelete={handleDeleteStall}
+          refetchMarketDetails={refetchMarketDetails}
         />
       </Suspense>
     </Box>
