@@ -324,9 +324,19 @@ const MarketDetail: React.FC = () => {
               >
                 <AlertIcon boxSize="40px" mr={0} />
                 <AlertTitle mt={4} mb={1} fontSize="lg">
-                  No layout image available for this market. Please click edit
-                  profile to upload
+                  No layout image available for this market. Please upload
                 </AlertTitle>
+                <Button
+                  mt={4}
+                  colorScheme="blue"
+                  onClick={() =>
+                    navigate("/configure", {
+                      state: { marketId: market.id },
+                    })
+                  }
+                >
+                  Upload Layout
+                </Button>
               </Alert>
             )}
           </CardBody>
