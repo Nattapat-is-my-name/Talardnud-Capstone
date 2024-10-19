@@ -108,7 +108,7 @@ const EditMarketPage: React.FC = () => {
         duration: 5000,
         isClosable: true,
       });
-      navigate(`/market/${marketId}`);
+      navigate(`/markets/${marketId}`);
     } catch (error) {
       console.error("Error updating market profile:", error);
       toast({

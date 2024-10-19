@@ -2287,6 +2287,48 @@ export const SlotsApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Delete slot by date and zone
+         * @summary Delete slot by date and zone
+         * @param {string} id Slot ID
+         * @param {string} zoneID Zone ID
+         * @param {string} date Date
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        slotsDeleteIdZoneZoneIDDateDateDelete: async (id: string, zoneID: string, date: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('slotsDeleteIdZoneZoneIDDateDateDelete', 'id', id)
+            // verify required parameter 'zoneID' is not null or undefined
+            assertParamExists('slotsDeleteIdZoneZoneIDDateDateDelete', 'zoneID', zoneID)
+            // verify required parameter 'date' is not null or undefined
+            assertParamExists('slotsDeleteIdZoneZoneIDDateDateDelete', 'date', date)
+            const localVarPath = `/slots/delete/{id}/zone/{zoneID}/date/{date}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)))
+                .replace(`{${"zoneID"}}`, encodeURIComponent(String(zoneID)))
+                .replace(`{${"date"}}`, encodeURIComponent(String(date)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Edit slot
          * @summary Edit slot
          * @param {string} id Slot ID
@@ -2496,6 +2538,21 @@ export const SlotsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Delete slot by date and zone
+         * @summary Delete slot by date and zone
+         * @param {string} id Slot ID
+         * @param {string} zoneID Zone ID
+         * @param {string} date Date
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async slotsDeleteIdZoneZoneIDDateDateDelete(id: string, zoneID: string, date: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<string>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.slotsDeleteIdZoneZoneIDDateDateDelete(id, zoneID, date, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SlotsApi.slotsDeleteIdZoneZoneIDDateDateDelete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Edit slot
          * @summary Edit slot
          * @param {string} id Slot ID
@@ -2584,6 +2641,18 @@ export const SlotsApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.slotsDeleteIdDelete(id, options).then((request) => request(axios, basePath));
         },
         /**
+         * Delete slot by date and zone
+         * @summary Delete slot by date and zone
+         * @param {string} id Slot ID
+         * @param {string} zoneID Zone ID
+         * @param {string} date Date
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        slotsDeleteIdZoneZoneIDDateDateDelete(id: string, zoneID: string, date: string, options?: RawAxiosRequestConfig): AxiosPromise<string> {
+            return localVarFp.slotsDeleteIdZoneZoneIDDateDateDelete(id, zoneID, date, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Edit slot
          * @summary Edit slot
          * @param {string} id Slot ID
@@ -2656,6 +2725,20 @@ export class SlotsApi extends BaseAPI {
      */
     public slotsDeleteIdDelete(id: string, options?: RawAxiosRequestConfig) {
         return SlotsApiFp(this.configuration).slotsDeleteIdDelete(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Delete slot by date and zone
+     * @summary Delete slot by date and zone
+     * @param {string} id Slot ID
+     * @param {string} zoneID Zone ID
+     * @param {string} date Date
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SlotsApi
+     */
+    public slotsDeleteIdZoneZoneIDDateDateDelete(id: string, zoneID: string, date: string, options?: RawAxiosRequestConfig) {
+        return SlotsApiFp(this.configuration).slotsDeleteIdZoneZoneIDDateDateDelete(id, zoneID, date, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -4,10 +4,8 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
-  ModalBody,
   ModalCloseButton,
-  Button,
+  ModalBody,
 } from "@chakra-ui/react";
 import { Slot } from "../types";
 import StallCard from "./StallCard";
@@ -34,28 +32,26 @@ const EditStallModal: React.FC<EditStallModalProps> = ({
   if (!slot || !zoneId) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Edit Stall</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>
+        <ModalBody pb={6}>
           <StallCard
             slot={slot}
             zoneId={zoneId}
-            isEditing={true}
-            onEdit={() => {}}
-            onSave={onSave}
-            onDelete={onDelete}
-            onCancelEdit={onClose}
+            onSave={(zoneId, updatedSlot) => {
+              onSave(zoneId, updatedSlot);
+              onClose();
+            }}
+            onDelete={async (slotId) => {
+              await onDelete(slotId);
+              onClose();
+            }}
             refetchMarketDetails={refetchMarketDetails}
           />
         </ModalBody>
-        <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={onClose}>
-            Close
-          </Button>
-        </ModalFooter>
       </ModalContent>
     </Modal>
   );

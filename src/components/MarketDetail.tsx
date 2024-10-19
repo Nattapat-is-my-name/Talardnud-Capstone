@@ -149,6 +149,8 @@ const MarketDetail: React.FC = () => {
 
   // Find the closest upcoming date
   const today = moment();
+
+  const hasSlots = market?.slots && market.slots.length > 0;
   const allDates = Object.keys(groupedSlots)
     .filter((date) => {
       const slotDate = moment(date);
@@ -224,7 +226,7 @@ const MarketDetail: React.FC = () => {
               </Heading>
               <Button
                 leftIcon={<Icon as={EditIcon} />}
-                colorScheme=""
+                colorScheme="blue"
                 onClick={handleEditProfile}
               >
                 Edit Profile
@@ -311,9 +313,20 @@ const MarketDetail: React.FC = () => {
                 </Box>
               </MotionBox>
             ) : (
-              <Alert status="info">
-                <AlertIcon />
-                No layout image available for this market. Please upload
+              <Alert
+                status="info"
+                variant="subtle"
+                flexDirection="column"
+                alignItems="center"
+                justifyContent="center"
+                textAlign="center"
+                height="200px"
+              >
+                <AlertIcon boxSize="40px" mr={0} />
+                <AlertTitle mt={4} mb={1} fontSize="lg">
+                  No layout image available for this market. Please click edit
+                  profile to upload
+                </AlertTitle>
               </Alert>
             )}
           </CardBody>
@@ -336,140 +349,172 @@ const MarketDetail: React.FC = () => {
               colorScheme="blue"
               onClick={handleCreateStall}
               leftIcon={<Icon as={FaPlus} />}
-              ml={4} // Adds space between DateRangePicker and Button
+              ml={4}
             >
               Create Stalls
             </Button>
           </Flex>
         </Flex>
 
-        {/* Dropdown for selecting dates */}
-        <Flex align="center" justify="space-between" mb={4}>
-          <Select
-            placeholder="Select date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            variant="filled"
-            borderRadius="md"
-            bg={cardBgColor}
-            _hover={{ bg: "gray.200" }}
-            _focus={{ boxShadow: "outline" }}
-          >
-            {allDates.map((date) => (
-              <option key={date} value={date}>
-                {moment(date).format("MMMM D, YYYY")}
-              </option>
-            ))}
-          </Select>
-          <Select
-            placeholder="All Zones"
-            value={selectedZone || ""}
-            onChange={(e) => setSelectedZone(e.target.value || null)}
-            variant="filled"
-            borderRadius="md"
-            bg={cardBgColor}
-            _hover={{ bg: "gray.200" }}
-            _focus={{ boxShadow: "outline" }}
-          >
-            {Object.keys(groupedSlots[selectedDate] || {}).map((zoneName) => (
-              <option key={zoneName} value={zoneName}>
-                Zone {zoneName} ({groupedSlots[selectedDate][zoneName].length})
-              </option>
-            ))}
-          </Select>
-        </Flex>
-
-        {/* Render grouped stalls by selected date and zone */}
-        {selectedDate && groupedSlots[selectedDate] && (
-          <Box key={selectedDate} mb={8}>
-            <Flex justify="space-between" align="center" mb={4}>
-              <Heading as="h2" size="xl" mb={4}>
-                {moment(selectedDate).format("MMMM D, YYYY")}
-              </Heading>
-              <Flex justify="space-between" align="center" mb={4}>
-                <Text pr={5} fontWeight="bold">
-                  Total Zones: {Object.keys(groupedSlots[selectedDate]).length}
-                </Text>
-                <Text fontWeight="bold">
-                  Total Stalls:{" "}
-                  {Object.values(groupedSlots[selectedDate]).reduce(
-                    (total, slots) => total + slots.length,
-                    0
-                  )}
-                </Text>
-              </Flex>
+        {market.slots && market.slots.length > 0 ? (
+          <>
+            <Flex align="center" justify="space-between" mb={4}>
+              <Select
+                placeholder="Select date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                variant="filled"
+                borderRadius="md"
+                bg={cardBgColor}
+                _hover={{ bg: "gray.200" }}
+                _focus={{ boxShadow: "outline" }}
+              >
+                {allDates.map((date) => (
+                  <option key={date} value={date}>
+                    {moment(date).format("MMMM D, YYYY")}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                placeholder="All Zones"
+                value={selectedZone || ""}
+                onChange={(e) => setSelectedZone(e.target.value || null)}
+                variant="filled"
+                borderRadius="md"
+                bg={cardBgColor}
+                _hover={{ bg: "gray.200" }}
+                _focus={{ boxShadow: "outline" }}
+              >
+                {Object.keys(groupedSlots[selectedDate] || {}).map(
+                  (zoneName) => (
+                    <option key={zoneName} value={zoneName}>
+                      Zone {zoneName} (
+                      {groupedSlots[selectedDate][zoneName].length})
+                    </option>
+                  )
+                )}
+              </Select>
             </Flex>
 
-            {Object.entries(groupedSlots[selectedDate])
-              .filter(([zoneName]) =>
-                selectedZone ? zoneName === selectedZone : true
-              )
-              .map(([zoneName, slots]) => (
-                <Card key={zoneName} bg={cardBgColor} shadow="md" mb={4}>
-                  <CardHeader>
-                    <Flex justify="space-between" align="center">
-                      <Heading as="h3" size="lg">
-                        Zone {zoneName}
-                      </Heading>
-                      <Text>
-                        Available:{" "}
-                        {
-                          slots.filter((slot) => slot.status === "available")
-                            .length
-                        }{" "}
-                        / Booked:{" "}
-                        {
-                          slots.filter((slot) => slot.status === "booked")
-                            .length
-                        }{" "}
-                        / Total: {slots.length}
-                      </Text>
-                    </Flex>
-                  </CardHeader>
-                  <CardBody>
-                    <SimpleGrid columns={[1, 2, 3, 4]} spacing={8}>
-                      {slots.map((slot, index) => (
-                        <motion.div key={index} whileHover={{ scale: 1.02 }}>
-                          <Box
-                            borderWidth="1px"
-                            borderRadius="lg"
-                            p={4}
-                            boxShadow="md"
-                            bg={bgColor}
-                          >
-                            <Heading as="h4" size="md" mb={2}>
-                              Slot {slot.name}
-                            </Heading>
-                            <VStack align="start" spacing={2}>
-                              <Text>
-                                <strong>Width:</strong> {slot.width} meters
-                              </Text>
-                              <Text>
-                                <strong>Height:</strong> {slot.height} meters
-                              </Text>
-                              <Text>
-                                <strong>Category:</strong> {slot.category}
-                              </Text>
-                              <Text>
-                                <strong>Price:</strong> ${slot.price}
-                              </Text>
+            {selectedDate && groupedSlots[selectedDate] && (
+              <Box key={selectedDate} mb={8}>
+                <Flex justify="space-between" align="center" mb={4}>
+                  <Heading as="h2" size="xl" mb={4}>
+                    {moment(selectedDate).format("MMMM D, YYYY")}
+                  </Heading>
+                  <Flex justify="space-between" align="center" mb={4}>
+                    <Text pr={5} fontWeight="bold">
+                      Total Zones:{" "}
+                      {Object.keys(groupedSlots[selectedDate]).length}
+                    </Text>
+                    <Text fontWeight="bold">
+                      Total Stalls:{" "}
+                      {Object.values(groupedSlots[selectedDate]).reduce(
+                        (total, slots) => total + slots.length,
+                        0
+                      )}
+                    </Text>
+                  </Flex>
+                </Flex>
 
-                              <Badge
-                                colorScheme={
-                                  slot.status === "available" ? "green" : "red"
-                                }
+                {Object.entries(groupedSlots[selectedDate])
+                  .filter(([zoneName]) =>
+                    selectedZone ? zoneName === selectedZone : true
+                  )
+                  .map(([zoneName, slots]) => (
+                    <Card key={zoneName} bg={cardBgColor} shadow="md" mb={4}>
+                      <CardHeader>
+                        <Flex justify="space-between" align="center">
+                          <Heading as="h3" size="lg">
+                            Zone {zoneName}
+                          </Heading>
+                          <Text>
+                            Available:{" "}
+                            {
+                              slots.filter(
+                                (slot) => slot.status === "available"
+                              ).length
+                            }{" "}
+                            / Booked:{" "}
+                            {
+                              slots.filter((slot) => slot.status === "booked")
+                                .length
+                            }{" "}
+                            / Total: {slots.length}
+                          </Text>
+                        </Flex>
+                      </CardHeader>
+                      <CardBody>
+                        <SimpleGrid columns={[1, 2, 3, 4]} spacing={8}>
+                          {slots.map((slot, index) => (
+                            <motion.div
+                              key={index}
+                              whileHover={{ scale: 1.02 }}
+                            >
+                              <Box
+                                borderWidth="1px"
+                                borderRadius="lg"
+                                p={4}
+                                boxShadow="md"
+                                bg={bgColor}
                               >
-                                {slot.status}
-                              </Badge>
-                            </VStack>
-                          </Box>
-                        </motion.div>
-                      ))}
-                    </SimpleGrid>
-                  </CardBody>
-                </Card>
-              ))}
-          </Box>
+                                <Heading as="h4" size="md" mb={2}>
+                                  Slot {slot.name}
+                                </Heading>
+                                <VStack align="start" spacing={2}>
+                                  <Text>
+                                    <strong>Width:</strong> {slot.width} meters
+                                  </Text>
+                                  <Text>
+                                    <strong>Height:</strong> {slot.height}{" "}
+                                    meters
+                                  </Text>
+                                  <Text>
+                                    <strong>Category:</strong> {slot.category}
+                                  </Text>
+                                  <Text>
+                                    <strong>Price:</strong> ${slot.price}
+                                  </Text>
+
+                                  <Badge
+                                    colorScheme={
+                                      slot.status === "available"
+                                        ? "green"
+                                        : "red"
+                                    }
+                                  >
+                                    {slot.status}
+                                  </Badge>
+                                </VStack>
+                              </Box>
+                            </motion.div>
+                          ))}
+                        </SimpleGrid>
+                      </CardBody>
+                    </Card>
+                  ))}
+              </Box>
+            )}
+          </>
+        ) : (
+          <Alert
+            status="info"
+            variant="subtle"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            textAlign="center"
+            height="200px"
+          >
+            <AlertIcon boxSize="40px" mr={0} />
+            <AlertTitle mt={4} mb={1} fontSize="lg">
+              No Stalls Available
+            </AlertTitle>
+            <AlertDescription maxWidth="sm">
+              This market currently has no stalls. Click the "Create Stalls"
+              button above to add stalls to this market.
+            </AlertDescription>
+          </Alert>
         )}
       </VStack>
     </Container>

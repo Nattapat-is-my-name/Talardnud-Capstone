@@ -158,6 +158,7 @@ const ConfigurePage: React.FC = () => {
                   onClick={handleMarketUpdate}
                   isDisabled={!marketDetails}
                   width="100%"
+                  p={6}
                 >
                   Update Layout Image
                 </Button>
