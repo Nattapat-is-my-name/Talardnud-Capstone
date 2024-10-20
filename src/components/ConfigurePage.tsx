@@ -107,7 +107,6 @@ const ConfigurePage: React.FC = () => {
         duration: 5000,
         isClosable: true,
       });
-      navigate(`/markets/${marketId}`);
     } catch (error) {
       console.error("Error updating market layout image:", error);
       toast({
