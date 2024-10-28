@@ -104,10 +104,16 @@ const MarketDetail: React.FC = () => {
       console.log("Fetching market details for marketId :", marketId);
       const response = await api.marketsGetIdGet(marketId);
       console.log("API Response:", response);
-      setDebugInfo(JSON.stringify(response, null, 2));
 
-      if (response.data && response.data.data) {
-        setMarket(response.data.data[0] || null);
+      const marketData =
+        Array.isArray((response.data as any)?.data) &&
+        (response.data as any).data.length > 0
+          ? (response.data as any).data[0]
+          : null;
+      console.log("Market data:", marketData?.address);
+
+      if (marketData) {
+        setMarket(marketData);
       } else {
         setError("No market data found in the response.");
       }
@@ -130,7 +136,7 @@ const MarketDetail: React.FC = () => {
 
   const handleEditProfile = () => {
     if (market) {
-      navigate(`/markets/${market.id}/edit`);
+      navigate(`/market/${market.id}/edit`);
     } else {
       console.error("Cannot edit profile: market is null");
     }

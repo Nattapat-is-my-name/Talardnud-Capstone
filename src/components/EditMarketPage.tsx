@@ -46,8 +46,14 @@ const EditMarketPage: React.FC = () => {
       });
       const marketApi = new MarketApi(config);
       const response = await marketApi.marketsGetIdGet(marketId);
-      if (response.data && response.data.data && response.data.data[0]) {
-        const market: EntitiesMarket = response.data.data[0];
+      const marketData =
+        Array.isArray((response.data as any)?.data) &&
+        (response.data as any).data.length > 0
+          ? (response.data as any).data[0]
+          : null;
+
+      if (marketData) {
+        const market = marketData;
         setMarketDetails({
           name: market.name || "",
           address: market.address || "",
@@ -108,7 +114,7 @@ const EditMarketPage: React.FC = () => {
         duration: 5000,
         isClosable: true,
       });
-      navigate(`/markets/${marketId}`);
+      navigate(`/market/${marketId}/edit`);
     } catch (error) {
       console.error("Error updating market profile:", error);
       toast({

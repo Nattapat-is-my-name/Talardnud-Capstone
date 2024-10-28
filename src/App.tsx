@@ -46,7 +46,7 @@ function App() {
                     element={<SlotPage />}
                   />
                   <Route
-                    path="/markets/:marketId/edit"
+                    path="/market/:marketId/edit"
                     element={<EditMarketPage />}
                   />
                 </Route>

@@ -53,6 +53,12 @@ const convertToSlot = (entitySlot: EntitiesSlot): Slot => ({
   updated_at: entitySlot.updated_at || "",
 });
 
+// Helper function to check if a date is current or future
+const isCurrentOrFutureDate = (date: string): boolean => {
+  const today = moment().startOf("day");
+  return moment(date).isSameOrAfter(today);
+};
+
 const GeneratedZonesPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -83,7 +89,7 @@ const GeneratedZonesPage: React.FC = () => {
         marketId: location.state?.marketId,
       });
       setHasNoStalls(true);
-      setIsLoading(false); // Ensure loading is stopped even if marketId or token is missing
+      setIsLoading(false);
       return;
     }
 
@@ -100,42 +106,55 @@ const GeneratedZonesPage: React.FC = () => {
         market.marketsGetIdGet(location.state.marketId),
       ]);
 
-      console.log("Market response:", marketresponse.data); // Log market response
-      console.log("Slot response:", slotresponse.data); // Log slot response
-
       if (slotresponse.data && Array.isArray(slotresponse.data)) {
-        const convertedSlots = slotresponse.data.map(convertToSlot);
+        const convertedSlots = slotresponse.data
+          .map(convertToSlot)
+          .filter((slot) => isCurrentOrFutureDate(slot.date)); // Filter out past dates
         setSlots(convertedSlots);
         setHasNoStalls(convertedSlots.length === 0);
+
+        // Set the default selected date to the current date if available, otherwise the earliest future date
+        if (convertedSlots.length > 0) {
+          const today = moment().format("YYYY-MM-DD");
+          const availableDates = Array.from(
+            new Set(
+              convertedSlots.map((slot) =>
+                moment(slot.date).format("YYYY-MM-DD")
+              )
+            )
+          ).sort();
+
+          const defaultDate = availableDates.includes(today)
+            ? today
+            : availableDates[0];
+
+          setSelectedDate(defaultDate);
+        }
       } else {
         setHasNoStalls(true);
       }
 
-      if (marketresponse.data && marketresponse.data.data) {
-        const marketNames = marketresponse.data.data.map(
-          (market) => market.name
-        );
-        setMarketName(marketNames[0] || "Unknown Market");
+      const marketData =
+        Array.isArray((marketresponse.data as any)?.data) &&
+        (marketresponse.data as any).data.length > 0
+          ? (marketresponse.data as any).data[0]
+          : null;
+
+      if (marketData) {
+        setMarketName(marketData.name || "Unknown Market");
       }
     } catch (err) {
-      console.error("Error fetching slot details:", err);
-      setHasNoStalls(true); // Set hasNoStalls to true instead of setting an error
+      console.error("Error fetching stall details:", err);
+      setHasNoStalls(true);
     } finally {
-      setIsLoading(false); // Stop the loading spinner in all cases
+      setIsLoading(false);
     }
   }, [token, location.state]);
 
-  // Get the current date
-  const currentDate = moment().startOf("day");
-
-  // Extract all unique dates from the slots, but only include current and future dates
-  const allDates = Array.from(
-    new Set(
-      slots
-        .map((slot) => moment(slot.date).format("YYYY-MM-DD"))
-        .filter((date) => moment(date).isSameOrAfter(currentDate))
-    )
-  );
+  // Get unique dates from slots (already filtered for current/future dates)
+  const availableDates = Array.from(
+    new Set(slots.map((slot) => moment(slot.date).format("YYYY-MM-DD")))
+  ).sort();
 
   // Filter slots by the selected date
   const filteredSlots = slots.filter((slot: Slot) =>
@@ -145,9 +164,17 @@ const GeneratedZonesPage: React.FC = () => {
   );
 
   useEffect(() => {
-    console.log("Fetching market details...");
     refetchMarketDetails();
   }, [refetchMarketDetails]);
+
+  const groupSlotsByZone = useCallback((slots: Slot[]) => {
+    const groups: { [key: string]: Slot[] } = {};
+    slots.forEach((slot: Slot) => {
+      if (!groups[slot.zone]) groups[slot.zone] = [];
+      groups[slot.zone].push(slot);
+    });
+    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+  }, []);
 
   const groupedSlots = useCallback(() => {
     const groups: { [key: string]: Slot[] } = {};
@@ -181,7 +208,6 @@ const GeneratedZonesPage: React.FC = () => {
   const handleSaveStall = useCallback(
     async (zoneId: string, updatedSlot: Slot) => {
       console.log(`Saving stall in zone ${zoneId}:`, updatedSlot);
-      // Implement stall saving logic here
       toast({
         title: "Stall Saved",
         description: `Stall ${updatedSlot.name} has been updated.`,
@@ -208,7 +234,6 @@ const GeneratedZonesPage: React.FC = () => {
         return;
       }
 
-      console.log(`Deleting stall ${slotId}`);
       try {
         const config = new Configuration({
           basePath: process.env.REACT_APP_API_BASE_URL,
@@ -217,7 +242,7 @@ const GeneratedZonesPage: React.FC = () => {
         const slotsApi = new SlotsApi(config);
 
         const response = await slotsApi.slotsDeleteIdDelete(slotId);
-        console.log("Deleted slot:", response.data);
+        console.log("Deleted stall:", response.data);
 
         toast({
           title: "Stall deleted",
@@ -265,8 +290,6 @@ const GeneratedZonesPage: React.FC = () => {
         });
         const slotsApi = new SlotsApi(config);
 
-        console.log(zoneId, formattedDate, location.state.marketId);
-
         const response = await slotsApi.slotsDeleteIdZoneZoneIDDateDateDelete(
           location.state.marketId,
           zoneId,
@@ -298,15 +321,6 @@ const GeneratedZonesPage: React.FC = () => {
     [toast, refetchMarketDetails, token, location.state]
   );
 
-  const groupSlotsByZone = useCallback((slots: Slot[]) => {
-    const groups: { [key: string]: Slot[] } = {};
-    slots.forEach((slot: Slot) => {
-      if (!groups[slot.zone]) groups[slot.zone] = [];
-      groups[slot.zone].push(slot);
-    });
-    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
-  }, []);
-
   const handleAddStall = useCallback(
     async (newStall: Partial<Slot>) => {
       if (!token || !location.state?.marketId) {
@@ -328,7 +342,6 @@ const GeneratedZonesPage: React.FC = () => {
         });
         const slotsApi = new SlotsApi(config);
 
-        // Create the layout in the specified format
         const layout = [
           {
             zone: newStall.zone || "",
@@ -394,7 +407,7 @@ const GeneratedZonesPage: React.FC = () => {
           Back
         </Button>
         <Heading as="h1" size="xl" textAlign="center">
-          List Slots for {marketName}
+          List Stalls for {marketName}
         </Heading>
         <Box width={100} />
       </Flex>
@@ -415,11 +428,12 @@ const GeneratedZonesPage: React.FC = () => {
         >
           <AlertIcon boxSize="40px" mr={0} />
           <AlertTitle mt={4} mb={1} fontSize="lg">
-            No Stalls Available
+            No Current or Future Stalls Available
           </AlertTitle>
           <AlertDescription maxWidth="sm">
-            This market currently has no stalls. Click the "Create Stalls"
-            button below to add stalls to this market.
+            This market currently has no stalls available for today or future
+            dates. Click the "Create Stalls" button below to add stalls to this
+            market.
           </AlertDescription>
           <Button
             mt={4}
@@ -443,9 +457,10 @@ const GeneratedZonesPage: React.FC = () => {
             bg="white"
             mb={4}
           >
-            {allDates.map((date) => (
+            {availableDates.map((date) => (
               <option key={date} value={date}>
                 {moment(date).format("MMMM D, YYYY")}
+                {moment(date).isSame(moment(), "day") ? " (Today)" : ""}
               </option>
             ))}
           </Select>
@@ -465,6 +480,11 @@ const GeneratedZonesPage: React.FC = () => {
                 >
                   <Heading as="h2" size="lg">
                     {moment(dateKey).format("MMMM D, YYYY")}
+                    {moment(dateKey).isSame(moment(), "day") && (
+                      <span style={{ marginLeft: "8px", color: "green" }}>
+                        (Today)
+                      </span>
+                    )}
                   </Heading>
                   {expandedDates[dateKey] ? (
                     <ChevronUpIcon />

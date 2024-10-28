@@ -746,6 +746,19 @@ export type EntitiesCategory = typeof EntitiesCategory[keyof typeof EntitiesCate
 /**
  * 
  * @export
+ * @interface EntitiesDashboardResponse
+ */
+export interface EntitiesDashboardResponse {
+    /**
+     * Changed to slice
+     * @type {Array<EntitiesMarketDashboardStats>}
+     * @memberof EntitiesDashboardResponse
+     */
+    'stats'?: Array<EntitiesMarketDashboardStats>;
+}
+/**
+ * 
+ * @export
  * @interface EntitiesLoginRequest
  */
 export interface EntitiesLoginRequest {
@@ -893,6 +906,91 @@ export interface EntitiesMarket {
 /**
  * 
  * @export
+ * @interface EntitiesMarketDashboardStats
+ */
+export interface EntitiesMarketDashboardStats {
+    /**
+     * 
+     * @type {number}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'booking_growth'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'created_at'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'date'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'market_id'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'occupancy_rate'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'revenue_growth'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'top_zone'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'top_zone_occupancy'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'total_bookings'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'total_cancel_bookings'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'total_confirm_bookings'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'total_pending_bookings'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EntitiesMarketDashboardStats
+     */
+    'total_revenue'?: number;
+}
+/**
+ * 
+ * @export
  * @interface EntitiesMarketProvider
  */
 export interface EntitiesMarketProvider {
@@ -1026,10 +1124,10 @@ export interface EntitiesPayment {
     'status'?: EntitiesPaymentStatus;
     /**
      * 
-     * @type {EntitiesTransaction}
+     * @type {Array<EntitiesTransaction>}
      * @memberof EntitiesPayment
      */
-    'transactions'?: EntitiesTransaction;
+    'transactions'?: Array<EntitiesTransaction>;
     /**
      * 
      * @type {string}
@@ -1755,6 +1853,40 @@ export const BookingsApiAxiosParamCreator = function (configuration?: Configurat
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Get bookings by user with the provided ID
+         * @summary Get bookings by user
+         * @param {string} id User ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        bookingsUserIdGet: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('bookingsUserIdGet', 'id', id)
+            const localVarPath = `/bookings/user/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -1791,6 +1923,19 @@ export const BookingsApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['BookingsApi.bookingsGetIdGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * Get bookings by user with the provided ID
+         * @summary Get bookings by user
+         * @param {string} id User ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async bookingsUserIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<EntitiesBooking>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.bookingsUserIdGet(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BookingsApi.bookingsUserIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -1820,6 +1965,16 @@ export const BookingsApiFactory = function (configuration?: Configuration, baseP
          */
         bookingsGetIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<DtosBookingResponse> {
             return localVarFp.bookingsGetIdGet(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get bookings by user with the provided ID
+         * @summary Get bookings by user
+         * @param {string} id User ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        bookingsUserIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<EntitiesBooking>> {
+            return localVarFp.bookingsUserIdGet(id, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1853,6 +2008,126 @@ export class BookingsApi extends BaseAPI {
      */
     public bookingsGetIdGet(id: string, options?: RawAxiosRequestConfig) {
         return BookingsApiFp(this.configuration).bookingsGetIdGet(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get bookings by user with the provided ID
+     * @summary Get bookings by user
+     * @param {string} id User ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BookingsApi
+     */
+    public bookingsUserIdGet(id: string, options?: RawAxiosRequestConfig) {
+        return BookingsApiFp(this.configuration).bookingsUserIdGet(id, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * DashboardApi - axios parameter creator
+ * @export
+ */
+export const DashboardApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get weekly stats for a market with the market ID
+         * @summary Get weekly stats for a market
+         * @param {string} id Market ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        dashboardWeeklyIdGet: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('dashboardWeeklyIdGet', 'id', id)
+            const localVarPath = `/dashboard/weekly/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * DashboardApi - functional programming interface
+ * @export
+ */
+export const DashboardApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = DashboardApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get weekly stats for a market with the market ID
+         * @summary Get weekly stats for a market
+         * @param {string} id Market ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async dashboardWeeklyIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EntitiesDashboardResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.dashboardWeeklyIdGet(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DashboardApi.dashboardWeeklyIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * DashboardApi - factory interface
+ * @export
+ */
+export const DashboardApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = DashboardApiFp(configuration)
+    return {
+        /**
+         * Get weekly stats for a market with the market ID
+         * @summary Get weekly stats for a market
+         * @param {string} id Market ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        dashboardWeeklyIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<EntitiesDashboardResponse> {
+            return localVarFp.dashboardWeeklyIdGet(id, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * DashboardApi - object-oriented interface
+ * @export
+ * @class DashboardApi
+ * @extends {BaseAPI}
+ */
+export class DashboardApi extends BaseAPI {
+    /**
+     * Get weekly stats for a market with the market ID
+     * @summary Get weekly stats for a market
+     * @param {string} id Market ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DashboardApi
+     */
+    public dashboardWeeklyIdGet(id: string, options?: RawAxiosRequestConfig) {
+        return DashboardApiFp(this.configuration).dashboardWeeklyIdGet(id, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -2094,7 +2369,7 @@ export const MarketApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async marketsGetIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DtosMarketResponse>> {
+        async marketsGetIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EntitiesMarket>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.marketsGetIdGet(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['MarketApi.marketsGetIdGet']?.[localVarOperationServerIndex]?.url;
@@ -2160,7 +2435,7 @@ export const MarketApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        marketsGetIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<DtosMarketResponse> {
+        marketsGetIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<EntitiesMarket> {
             return localVarFp.marketsGetIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
@@ -2241,6 +2516,114 @@ export class MarketApi extends BaseAPI {
      */
     public marketsProviderGetIdGet(id: string, options?: RawAxiosRequestConfig) {
         return MarketApiFp(this.configuration).marketsProviderGetIdGet(id, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * PaymentsApi - axios parameter creator
+ * @export
+ */
+export const PaymentsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get payment by the provided ID
+         * @summary Get payment by ID
+         * @param {string} id Payment ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        paymentsGetIdGet: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('paymentsGetIdGet', 'id', id)
+            const localVarPath = `/payments/get/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * PaymentsApi - functional programming interface
+ * @export
+ */
+export const PaymentsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = PaymentsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get payment by the provided ID
+         * @summary Get payment by ID
+         * @param {string} id Payment ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async paymentsGetIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DtosBookingResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.paymentsGetIdGet(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['PaymentsApi.paymentsGetIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * PaymentsApi - factory interface
+ * @export
+ */
+export const PaymentsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = PaymentsApiFp(configuration)
+    return {
+        /**
+         * Get payment by the provided ID
+         * @summary Get payment by ID
+         * @param {string} id Payment ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        paymentsGetIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<DtosBookingResponse> {
+            return localVarFp.paymentsGetIdGet(id, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * PaymentsApi - object-oriented interface
+ * @export
+ * @class PaymentsApi
+ * @extends {BaseAPI}
+ */
+export class PaymentsApi extends BaseAPI {
+    /**
+     * Get payment by the provided ID
+     * @summary Get payment by ID
+     * @param {string} id Payment ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PaymentsApi
+     */
+    public paymentsGetIdGet(id: string, options?: RawAxiosRequestConfig) {
+        return PaymentsApiFp(this.configuration).paymentsGetIdGet(id, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

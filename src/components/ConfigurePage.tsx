@@ -43,8 +43,13 @@ const ConfigurePage: React.FC = () => {
       });
       const marketApi = new MarketApi(config);
       const response = await marketApi.marketsGetIdGet(marketId);
-      if (response.data && response.data.data && response.data.data[0]) {
-        const market = response.data.data[0];
+      const marketData =
+        Array.isArray((response.data as any)?.data) &&
+        (response.data as any).data.length > 0
+          ? (response.data as any).data[0]
+          : null;
+      if (marketData) {
+        const market = marketData;
         setMarketDetails({
           name: market.name || "",
           address: market.address || "",
