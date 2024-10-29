@@ -45,6 +45,7 @@ const Navbar: React.FC = () => {
             <Link as={RouterLink} to="/market" color="white" mr={4}>
               Market
             </Link>
+
             <Button color="white" variant="link" onClick={handleLogout}>
               Logout
             </Button>

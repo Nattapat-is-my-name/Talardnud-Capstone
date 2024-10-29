@@ -36,6 +36,9 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
     setIsAddModalOpen(false);
   };
 
+  // Check if there are any booked stalls
+  const hasBookedStalls = slots.some((slot) => slot.status === "booked");
+
   return (
     <Box bg="white" p={4} borderRadius="md" shadow="md">
       <VStack align="stretch" spacing={4}>
@@ -58,7 +61,7 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
                 <Badge
                   colorScheme={slot.status === "available" ? "green" : "red"}
                 >
-                  {slot.status.toUpperCase()}
+                  {slot.status == "booked" ? "Book" : slot.status}
                 </Badge>
                 <Button
                   size="sm"
@@ -78,7 +81,13 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
         <Button
           size="sm"
           colorScheme="red"
+          isDisabled={hasBookedStalls}
           onClick={() => onDeleteZone(zone, date)}
+          title={
+            hasBookedStalls
+              ? "Cannot delete zone with booked stalls"
+              : "Delete zone"
+          }
         >
           Delete Zone
         </Button>

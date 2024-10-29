@@ -19,6 +19,7 @@ import {
   InputGroup,
   InputLeftAddon,
   Divider,
+  Tooltip,
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import { Slot } from "../types";
@@ -36,6 +37,8 @@ interface StallCardProps {
   onSave: (zoneId: string, updatedSlot: Slot) => void;
   onDelete: (slotId: string) => Promise<void>;
   refetchMarketDetails: () => Promise<void>;
+  isDeleteDisabled?: boolean;
+  deleteDisabledMessage?: string;
 }
 
 const StallCard: React.FC<StallCardProps> = ({
@@ -43,6 +46,9 @@ const StallCard: React.FC<StallCardProps> = ({
   zoneId,
   onSave,
   onDelete,
+  refetchMarketDetails,
+  isDeleteDisabled = slot.status === "booked",
+  deleteDisabledMessage = "Cannot delete a booked stall",
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedSlot, setEditedSlot] = useState<Slot>(slot);
@@ -103,7 +109,6 @@ const StallCard: React.FC<StallCardProps> = ({
           duration: 3000,
           isClosable: true,
         });
-
         setIsEditing(false);
       } else {
         throw new Error("No data returned from API");
@@ -123,9 +128,12 @@ const StallCard: React.FC<StallCardProps> = ({
   };
 
   const handleDelete = async () => {
+    if (isDeleteDisabled) return;
+
     setIsLoading(true);
     try {
       await onDelete(slot.id);
+      await refetchMarketDetails();
       toast({
         title: "Stall deleted",
         description: "The stall has been successfully deleted.",
@@ -168,7 +176,7 @@ const StallCard: React.FC<StallCardProps> = ({
           </Text>
           <Text>Price: ${slot.price}</Text>
           <Text>Category: {slot.category}</Text>
-          <Text>Status: {slot.status}</Text>
+          <Text>Status: {slot.status == "booked" ? "book" : slot.status}</Text>
           <HStack justifyContent="space-between">
             <Button
               leftIcon={<EditIcon />}
@@ -178,15 +186,23 @@ const StallCard: React.FC<StallCardProps> = ({
             >
               Edit
             </Button>
-            <Button
-              leftIcon={<DeleteIcon />}
-              onClick={handleDelete}
-              colorScheme="red"
-              size="sm"
-              isLoading={isLoading}
+            <Tooltip
+              isDisabled={!isDeleteDisabled}
+              label={deleteDisabledMessage}
+              hasArrow
+              placement="top"
             >
-              Delete
-            </Button>
+              <Button
+                leftIcon={<DeleteIcon />}
+                onClick={handleDelete}
+                colorScheme="red"
+                size="sm"
+                isLoading={isLoading}
+                isDisabled={isDeleteDisabled}
+              >
+                Delete
+              </Button>
+            </Tooltip>
           </HStack>
         </VStack>
       </Box>
@@ -266,7 +282,7 @@ const StallCard: React.FC<StallCardProps> = ({
                 >
                   {Object.values(EntitiesSlotStatus).map((status) => (
                     <option key={status} value={status}>
-                      {status}
+                      {status === "booked" ? "book" : status}
                     </option>
                   ))}
                 </Select>

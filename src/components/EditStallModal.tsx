@@ -31,6 +31,9 @@ const EditStallModal: React.FC<EditStallModalProps> = ({
 }) => {
   if (!slot || !zoneId) return null;
 
+  // Check if the stall is booked
+  const isBooked = slot.status === "booked";
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <ModalOverlay />
@@ -50,6 +53,10 @@ const EditStallModal: React.FC<EditStallModalProps> = ({
               onClose();
             }}
             refetchMarketDetails={refetchMarketDetails}
+            isDeleteDisabled={isBooked} // Pass the booked status to StallCard
+            deleteDisabledMessage={
+              isBooked ? "Cannot delete a booked stall" : undefined
+            }
           />
         </ModalBody>
       </ModalContent>

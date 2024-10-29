@@ -10,6 +10,7 @@ import {
   useColorModeValue,
   useToast,
   Button,
+  Icon,
 } from "@chakra-ui/react";
 import ImageUpload from "./ImageUpload";
 import UserForm from "./UserForm";
@@ -17,6 +18,7 @@ import { useMarket } from "../contexts/MarketProvider";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MarketApi, Configuration, DtosMarketEditRequest } from "../api";
 import { useAuth } from "../contexts/AuthContext";
+import { FaArrowLeft } from "react-icons/fa";
 
 const ConfigurePage: React.FC = () => {
   const location = useLocation();
@@ -43,6 +45,8 @@ const ConfigurePage: React.FC = () => {
       });
       const marketApi = new MarketApi(config);
       const response = await marketApi.marketsGetIdGet(marketId);
+
+      console.log("response", response);
       const marketData =
         Array.isArray((response.data as any)?.data) &&
         (response.data as any).data.length > 0
@@ -127,6 +131,13 @@ const ConfigurePage: React.FC = () => {
   return (
     <Box minH="100vh" bg={bgColor} py={8} px={4}>
       <Container maxW="1800px">
+        <Button
+          leftIcon={<Icon as={FaArrowLeft} />}
+          variant="ghost"
+          onClick={() => navigate(`/market/${marketId}`)}
+        >
+          Back
+        </Button>
         <VStack spacing={12}>
           <Heading as="h1" size="2xl" textAlign="center">
             Market Layout Configuration
@@ -195,7 +206,7 @@ const ConfigurePage: React.FC = () => {
               borderColor={borderColor}
             >
               <Heading as="h3" size="lg" mb={6} fontWeight="semibold">
-                Generated Zones
+                Preview Zones
               </Heading>
               <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={6}>
                 {zones.map((zone) => (

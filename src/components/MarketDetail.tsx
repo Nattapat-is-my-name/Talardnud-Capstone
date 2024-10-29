@@ -24,20 +24,27 @@ import {
   Icon,
   Stack,
   Image,
-  Tooltip,
   BoxProps,
   Select,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalOverlay,
+  Tooltip,
 } from "@chakra-ui/react";
+
 import {
   FaMapMarkerAlt,
   FaPhone,
   FaClock,
-  FaExpand,
   FaPlus,
+  FaArrowLeft,
+  FaExpand,
 } from "react-icons/fa";
+import { MdOutlineAnalytics } from "react-icons/md";
 import { useAuth } from "../contexts/AuthContext";
 import { isValidMotionProp, motion, MotionProps } from "framer-motion";
-import { DateRangePicker } from "react-dates";
 import moment, { Moment } from "moment";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
@@ -223,6 +230,14 @@ const MarketDetail: React.FC = () => {
 
   return (
     <Container maxW="8xl" py={8}>
+      <Button
+        leftIcon={<Icon as={FaArrowLeft} />}
+        variant="ghost"
+        onClick={() => navigate(`/market`)}
+      >
+        Back to All Market
+      </Button>
+      <Box width="40px" />
       <VStack spacing={8} align="stretch">
         <Card bg={cardBgColor} shadow="md">
           <CardHeader>
@@ -230,13 +245,27 @@ const MarketDetail: React.FC = () => {
               <Heading as="h1" size="2xl">
                 {market.name}
               </Heading>
-              <Button
-                leftIcon={<Icon as={EditIcon} />}
-                colorScheme="blue"
-                onClick={handleEditProfile}
-              >
-                Edit Profile
-              </Button>
+
+              <Flex gap={4}>
+                <Button
+                  leftIcon={<Icon as={MdOutlineAnalytics} />}
+                  colorScheme="orange"
+                  onClick={() => {
+                    navigate(`/report`, {
+                      state: { marketId: market.id },
+                    });
+                  }}
+                >
+                  Market Report
+                </Button>
+                <Button
+                  leftIcon={<Icon as={EditIcon} />}
+                  colorScheme="blue"
+                  onClick={handleEditProfile}
+                >
+                  Edit Profile
+                </Button>
+              </Flex>
             </Flex>
           </CardHeader>
           <CardBody>
@@ -347,6 +376,24 @@ const MarketDetail: React.FC = () => {
             )}
           </CardBody>
         </Card>
+
+        <Modal isOpen={isOpen} onClose={handleClose} size="7xl">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalCloseButton />
+            <ModalBody>
+              <Image
+                src={market.layout_image}
+                alt={`${market.name} Layout`}
+                objectFit="contain"
+                width="100%"
+                height="auto"
+                maxHeight="80vh"
+                borderRadius="lg"
+              />
+            </ModalBody>
+          </ModalContent>
+        </Modal>
 
         <Flex align="center" justify="flex-end" mb={4}>
           <Flex align="center">

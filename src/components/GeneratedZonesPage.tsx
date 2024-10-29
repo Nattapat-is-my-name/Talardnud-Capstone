@@ -14,6 +14,7 @@ import {
   Select,
   AlertTitle,
   AlertDescription,
+  Icon,
 } from "@chakra-ui/react";
 import {
   ChevronDownIcon,
@@ -31,6 +32,7 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Slot } from "../types";
+import { FaArrowLeft } from "react-icons/fa";
 
 const LazyZoneCard = lazy(() => import("../components/ZoneCard"));
 const LazyEditStallModal = lazy(() => import("../components/EditStallModal"));
@@ -399,10 +401,9 @@ const GeneratedZonesPage: React.FC = () => {
     <Box minH="calc(100vh - 60px)" p={8}>
       <Flex justify="space-between" align="center" mb={8}>
         <Button
-          leftIcon={<ArrowBackIcon />}
-          onClick={handleGoBack}
-          size="lg"
-          fontSize="xl"
+          leftIcon={<Icon as={FaArrowLeft} />}
+          variant="ghost"
+          onClick={() => navigate(`/market/${location.state?.marketId}`)}
         >
           Back
         </Button>
@@ -424,7 +425,7 @@ const GeneratedZonesPage: React.FC = () => {
           alignItems="center"
           justifyContent="center"
           textAlign="center"
-          height="200px"
+          maxW="auto"
         >
           <AlertIcon boxSize="40px" mr={0} />
           <AlertTitle mt={4} mb={1} fontSize="lg">
@@ -438,6 +439,7 @@ const GeneratedZonesPage: React.FC = () => {
           <Button
             mt={4}
             colorScheme="blue"
+            h="40px"
             onClick={() =>
               navigate("/configure", {
                 state: { marketId: location.state?.marketId },
