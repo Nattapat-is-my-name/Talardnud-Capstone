@@ -9,8 +9,18 @@ import {
   VStack,
   Heading,
   useToast,
+  Container,
+  Text,
+  Link,
+  InputGroup,
+  InputLeftElement,
+  InputRightElement,
+  IconButton,
+  useColorModeValue,
 } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
+import { FiUser, FiMail, FiLock, FiPhone } from "react-icons/fi";
 
 const Register = () => {
   const [provider, setProvider] = useState<DtosMarketProviderRequest>({
@@ -20,10 +30,16 @@ const Register = () => {
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
 
   const api = new AuthApi();
+
+  // Color mode values to match navbar
+  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const gradientText = "linear(to-r, blue.500, blue.600)";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -37,19 +53,19 @@ const Register = () => {
       const response = await api.authProviderRegisterPost(provider);
       console.log("Created Provider:", response.data);
       toast({
-        title: "Provider created.",
-        description: "We've created your provider account. Please log in.",
+        title: "Registration successful!",
+        description:
+          "Your market provider account has been created. Please sign in.",
         status: "success",
         duration: 5000,
         isClosable: true,
       });
-      // Redirect to login page
       navigate("/login");
     } catch (error) {
       console.error("Error creating provider:", error);
       toast({
-        title: "An error occurred.",
-        description: "Unable to create provider.",
+        title: "Registration failed",
+        description: "Please check your information and try again.",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -60,68 +76,137 @@ const Register = () => {
   };
 
   return (
-    <Box
-      maxWidth="md"
-      margin="auto"
-      mt={10}
-      p={6}
-      borderWidth={1}
-      borderRadius="lg"
-    >
-      <Heading as="h2" size="xl" mb={6}>
-        Register Market Provider
-      </Heading>
-      <form onSubmit={handleSubmit}>
-        <VStack spacing={4}>
-          <FormControl isRequired>
-            <FormLabel htmlFor="username">Username</FormLabel>
-            <Input
-              id="username"
-              name="username"
-              value={provider.username}
-              onChange={handleInputChange}
-            />
-          </FormControl>
-          <FormControl isRequired>
-            <FormLabel htmlFor="email">Email</FormLabel>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={provider.email}
-              onChange={handleInputChange}
-            />
-          </FormControl>
-          <FormControl isRequired>
-            <FormLabel htmlFor="password">Password</FormLabel>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              value={provider.password}
-              onChange={handleInputChange}
-            />
-          </FormControl>
-          <FormControl isRequired>
-            <FormLabel htmlFor="phone">Phone</FormLabel>
-            <Input
-              id="phone"
-              name="phone"
-              value={provider.phone}
-              onChange={handleInputChange}
-            />
-          </FormControl>
-          <Button
-            type="submit"
-            colorScheme="blue"
-            isLoading={isLoading}
-            loadingText="Creating"
-            width="full"
-          >
-            Create Provider
-          </Button>
-        </VStack>
-      </form>
+    <Box minH="calc(100vh - 64px)" bg="gray.50">
+      <Container maxW="lg" py={{ base: 12, md: 24 }}>
+        <Box
+          bg={bgColor}
+          p={8}
+          borderWidth="1px"
+          borderColor={borderColor}
+          borderRadius="xl"
+          boxShadow="xl"
+        >
+          <VStack spacing={8} align="stretch">
+            <VStack spacing={3}>
+              <Heading
+                as="h1"
+                bgGradient={gradientText}
+                bgClip="text"
+                fontSize={{ base: "2xl", md: "3xl" }}
+                fontWeight="extrabold"
+                textAlign="center"
+              >
+                Create Account
+              </Heading>
+              <Text color="gray.600" textAlign="center">
+                Register as a Market Provider
+              </Text>
+            </VStack>
+
+            <form onSubmit={handleSubmit}>
+              <VStack spacing={5}>
+                <FormControl isRequired>
+                  <FormLabel>Username</FormLabel>
+                  <InputGroup size="lg">
+                    <InputLeftElement pointerEvents="none">
+                      <FiUser color="gray.400" />
+                    </InputLeftElement>
+                    <Input
+                      name="username"
+                      value={provider.username}
+                      onChange={handleInputChange}
+                      placeholder="Choose a username"
+                    />
+                  </InputGroup>
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel>Email</FormLabel>
+                  <InputGroup size="lg">
+                    <InputLeftElement pointerEvents="none">
+                      <FiMail color="gray.400" />
+                    </InputLeftElement>
+                    <Input
+                      name="email"
+                      type="email"
+                      value={provider.email}
+                      onChange={handleInputChange}
+                      placeholder="Enter your email"
+                    />
+                  </InputGroup>
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel>Phone</FormLabel>
+                  <InputGroup size="lg">
+                    <InputLeftElement pointerEvents="none">
+                      <FiPhone color="gray.400" />
+                    </InputLeftElement>
+                    <Input
+                      name="phone"
+                      value={provider.phone}
+                      onChange={handleInputChange}
+                      placeholder="Enter your phone number"
+                    />
+                  </InputGroup>
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel>Password</FormLabel>
+                  <InputGroup size="lg">
+                    <InputLeftElement pointerEvents="none">
+                      <FiLock color="gray.400" />
+                    </InputLeftElement>
+                    <Input
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      value={provider.password}
+                      onChange={handleInputChange}
+                      placeholder="Create a password"
+                    />
+                    <InputRightElement>
+                      <IconButton
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowPassword(!showPassword)}
+                        icon={showPassword ? <ViewOffIcon /> : <ViewIcon />}
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                      />
+                    </InputRightElement>
+                  </InputGroup>
+                </FormControl>
+
+                <Button
+                  type="submit"
+                  colorScheme="blue"
+                  size="lg"
+                  fontSize="md"
+                  isLoading={isLoading}
+                  loadingText="Creating account..."
+                  w="full"
+                >
+                  Create Account
+                </Button>
+              </VStack>
+            </form>
+
+            <Text textAlign="center" pt={4}>
+              Already have an account?{" "}
+              <Link
+                as={RouterLink}
+                to="/login"
+                color="blue.500"
+                fontWeight="semibold"
+                _hover={{ textDecoration: "underline" }}
+              >
+                Sign in here
+              </Link>
+            </Text>
+          </VStack>
+        </Box>
+      </Container>
     </Box>
   );
 };

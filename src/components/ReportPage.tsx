@@ -325,16 +325,15 @@ const ReportPage: React.FC = () => {
 
   return (
     <Container maxW="7xl" p={10}>
-      <Flex justify="space-between" align="center" mb={8}>
-        <Button
-          leftIcon={<Icon as={FaArrowLeft} />}
-          variant="ghost"
-          onClick={() => navigate(`/market/${marketId}`)}
-        >
-          Back to Market
-        </Button>
+      <Button
+        leftIcon={<Icon as={FaArrowLeft} />}
+        variant="ghost"
+        onClick={() => navigate(`/market/${marketId}`)}
+      >
+        Back to Market
+      </Button>
+      <Flex justify="center" align="center" mb={8}>
         <Heading>Market Insights Dashboard</Heading>
-        <Box width="40px" />
       </Flex>
       <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={6}>
         <StatCard

@@ -239,35 +239,29 @@ const MarketDetail: React.FC = () => {
       </Button>
       <Box width="40px" />
       <VStack spacing={8} align="stretch">
+        <Flex justify="end" align="center">
+          <Flex gap={4}>
+            <Button
+              leftIcon={<Icon as={MdOutlineAnalytics} />}
+              colorScheme="orange"
+              onClick={() => {
+                navigate(`/report`, {
+                  state: { marketId: market.id },
+                });
+              }}
+            >
+              Market Report
+            </Button>
+            <Button
+              leftIcon={<Icon as={EditIcon} />}
+              colorScheme="blue"
+              onClick={handleEditProfile}
+            >
+              Edit Profile
+            </Button>
+          </Flex>
+        </Flex>
         <Card bg={cardBgColor} shadow="md">
-          <CardHeader>
-            <Flex justify="space-between" align="center">
-              <Heading as="h1" size="2xl">
-                {market.name}
-              </Heading>
-
-              <Flex gap={4}>
-                <Button
-                  leftIcon={<Icon as={MdOutlineAnalytics} />}
-                  colorScheme="orange"
-                  onClick={() => {
-                    navigate(`/report`, {
-                      state: { marketId: market.id },
-                    });
-                  }}
-                >
-                  Market Report
-                </Button>
-                <Button
-                  leftIcon={<Icon as={EditIcon} />}
-                  colorScheme="blue"
-                  onClick={handleEditProfile}
-                >
-                  Edit Profile
-                </Button>
-              </Flex>
-            </Flex>
-          </CardHeader>
           <CardBody>
             <Stack direction={["column", "row"]} spacing={8}>
               <Image
@@ -280,6 +274,9 @@ const MarketDetail: React.FC = () => {
               />
 
               <VStack align="start" spacing={4} flex={1}>
+                <Heading as="h1" size="2xl">
+                  {market.name}
+                </Heading>
                 <Text fontSize="xl">
                   {market.description || "No description available"}
                 </Text>

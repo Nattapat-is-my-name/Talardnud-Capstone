@@ -21,6 +21,7 @@ import MarketDetail from "./components/MarketDetail";
 import SlotPage from "./components/SlotPage";
 import EditMarketPage from "./components/EditMarketPage";
 import ReportPage from "./components/ReportPage";
+import BookingPage from "./components/BookingPage";
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
                     path="/market/:marketId/edit"
                     element={<EditMarketPage />}
                   />
+                  <Route path="/booking" element={<BookingPage />} />
                   <Route path="/report" element={<ReportPage />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />

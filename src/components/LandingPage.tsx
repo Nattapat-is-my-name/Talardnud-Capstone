@@ -12,7 +12,12 @@ const LandingPage: React.FC = () => {
       justifyContent="center"
     >
       <VStack spacing={8} textAlign="center">
-        <Heading as="h1" size="2xl">
+        <Heading
+          as="h1"
+          bgGradient="linear(to-r, blue.500, blue.600)"
+          bgClip="text"
+          size="2xl"
+        >
           Welcome to TLN Admin Portal
         </Heading>
         <Text fontSize="xl">

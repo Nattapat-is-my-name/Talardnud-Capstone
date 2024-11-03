@@ -10,17 +10,43 @@ import {
   Spinner,
   Flex,
   Grid,
-  Center,
+  Container,
   Select,
   AlertTitle,
   AlertDescription,
   Icon,
+  Card,
+  CardBody,
+  Badge,
+  HStack,
+  Tab,
+  Tabs,
+  TabList,
+  TabPanel,
+  TabPanels,
+  SimpleGrid,
+  Text,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
+  Divider,
+  Stack,
+  useColorModeValue,
+  MenuDivider,
 } from "@chakra-ui/react";
 import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ArrowBackIcon,
-} from "@chakra-ui/icons";
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Input,
+  InputGroup,
+  InputLeftElement,
+} from "@chakra-ui/react";
 import moment from "moment";
 import {
   MarketApi,
@@ -32,7 +58,22 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Slot } from "../types";
-import { FaArrowLeft } from "react-icons/fa";
+import {
+  FaArrowLeft,
+  FaFileCsv,
+  FaFilter,
+  FaPlus,
+  FaPrint,
+  FaSearch,
+} from "react-icons/fa";
+import {
+  EditIcon,
+  DeleteIcon,
+  CalendarIcon,
+  AddIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+} from "@chakra-ui/icons";
 
 const LazyZoneCard = lazy(() => import("../components/ZoneCard"));
 const LazyEditStallModal = lazy(() => import("../components/EditStallModal"));
@@ -82,6 +123,38 @@ const GeneratedZonesPage: React.FC = () => {
 
   const handleGoBack = () => {
     navigate(-1);
+  };
+
+  type SortField = "name" | "zone" | "price" | "status" | "category";
+  type SortOrder = "asc" | "desc";
+
+  interface SortConfig {
+    field: SortField;
+    order: SortOrder;
+  }
+
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    field: "name",
+    order: "asc",
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const sortSlots = (slots: Slot[], config: SortConfig) => {
+    return [...slots].sort((a, b) => {
+      if (config.field === "price") {
+        const numA = parseFloat(a[config.field].toString());
+        const numB = parseFloat(b[config.field].toString());
+        return config.order === "asc" ? numA - numB : numB - numA;
+      }
+
+      const valueA = a[config.field]?.toString().toLowerCase() ?? "";
+      const valueB = b[config.field]?.toString().toLowerCase() ?? "";
+
+      if (config.order === "asc") {
+        return valueA.localeCompare(valueB);
+      }
+      return valueB.localeCompare(valueA);
+    });
   };
 
   const refetchMarketDetails = useCallback(async () => {
@@ -322,6 +395,96 @@ const GeneratedZonesPage: React.FC = () => {
     },
     [toast, refetchMarketDetails, token, location.state]
   );
+  const TableView: React.FC<{
+    slots: Slot[];
+    onEditStall: (zoneId: string, slot: Slot) => void;
+    sortConfig: SortConfig;
+    onSort: (field: SortField) => void;
+  }> = ({ slots, onEditStall, sortConfig, onSort }) => {
+    const getSortIcon = (field: SortField) => {
+      if (sortConfig.field !== field) return null;
+      return sortConfig.order === "asc" ? "↑" : "↓";
+    };
+
+    const renderSortableHeader = (field: SortField, label: string) => (
+      <Th
+        cursor="pointer"
+        onClick={() => onSort(field)}
+        _hover={{ color: "blue.500" }}
+      >
+        <HStack spacing={1}>
+          <Text>{label}</Text>
+          <Text fontSize="xs" color="blue.500">
+            {getSortIcon(field)}
+          </Text>
+        </HStack>
+      </Th>
+    );
+
+    const sortedSlots = sortSlots(slots, sortConfig);
+
+    return (
+      <Box overflowX="auto">
+        <Table variant="simple">
+          <Thead>
+            <Tr>
+              {renderSortableHeader("name", "Stall Name")}
+              {renderSortableHeader("zone", "Zone")}
+              <Th>Size (m²)</Th>
+              {renderSortableHeader("price", "Price")}
+              {renderSortableHeader("category", "Category")}
+              {renderSortableHeader("status", "Status")}
+              <Th>Actions</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {sortedSlots.map((slot) => (
+              <Tr key={slot.id}>
+                <Td fontWeight="medium">{slot.name}</Td>
+                <Td>{slot.zone}</Td>
+                <Td>{`${slot.width} × ${slot.height}`}</Td>
+                <Td>${slot.price}</Td>
+                <Td>
+                  <Badge colorScheme="purple" variant="subtle">
+                    {slot.category}
+                  </Badge>
+                </Td>
+                <Td>
+                  <Badge
+                    colorScheme={slot.status === "available" ? "green" : "red"}
+                    variant="subtle"
+                  >
+                    {slot.status === "booked" ? "book" : slot.status}
+                  </Badge>
+                </Td>
+                <Td>
+                  <HStack spacing={2}>
+                    <IconButton
+                      aria-label="Edit stall"
+                      icon={<EditIcon />}
+                      size="sm"
+                      colorScheme="blue"
+                      variant="ghost"
+                      onClick={() => onEditStall(slot.zone, slot)}
+                    />
+                    <IconButton
+                      aria-label="Delete stall"
+                      icon={<DeleteIcon />}
+                      size="sm"
+                      colorScheme="red"
+                      variant="ghost"
+                      isDisabled={slot.status === "booked"}
+                      onClick={() => handleDeleteStall(slot.id)}
+                    />
+                  </HStack>
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </Box>
+    );
+  };
 
   const handleAddStall = useCallback(
     async (newStall: Partial<Slot>) => {
@@ -397,134 +560,391 @@ const GeneratedZonesPage: React.FC = () => {
     [toast, refetchMarketDetails, token, location.state]
   );
 
+  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.600");
+
   return (
-    <Box minH="calc(100vh - 60px)" p={8}>
-      <Flex justify="space-between" align="center" mb={8}>
-        <Button
-          leftIcon={<Icon as={FaArrowLeft} />}
-          variant="ghost"
-          onClick={() => navigate(`/market/${location.state?.marketId}`)}
-        >
-          Back
-        </Button>
-        <Heading as="h1" size="xl" textAlign="center">
-          List Stalls for {marketName}
-        </Heading>
-        <Box width={100} />
-      </Flex>
+    <Box minH="100vh" bg="gray.50">
+      <Container maxW="8xl" py={8}>
+        <Stack spacing={8}>
+          {/* Header Section */}
+          <Box mb={6}>
+            <HStack justify="space-between" align="center" spacing={4} py={2}>
+              <Button
+                leftIcon={<Icon as={FaArrowLeft} />}
+                variant="ghost"
+                size="lg"
+                fontSize="md"
+                onClick={() => navigate(`/market/${location.state?.marketId}`)}
+                _hover={{
+                  transform: "translateX(-4px)",
+                  transition: "all 0.2s",
+                }}
+              >
+                Back to Market
+              </Button>
 
-      {isLoading ? (
-        <Center minH="calc(100vh - 200px)">
-          <Spinner size="xl" />
-        </Center>
-      ) : hasNoStalls ? (
-        <Alert
-          status="info"
-          variant="subtle"
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          textAlign="center"
-          maxW="auto"
-        >
-          <AlertIcon boxSize="40px" mr={0} />
-          <AlertTitle mt={4} mb={1} fontSize="lg">
-            No Current or Future Stalls Available
-          </AlertTitle>
-          <AlertDescription maxWidth="sm">
-            This market currently has no stalls available for today or future
-            dates. Click the "Create Stalls" button below to add stalls to this
-            market.
-          </AlertDescription>
-          <Button
-            mt={4}
-            colorScheme="blue"
-            h="40px"
-            onClick={() =>
-              navigate("/configure", {
-                state: { marketId: location.state?.marketId },
-              })
-            }
-          >
-            Create Stalls
-          </Button>
-        </Alert>
-      ) : (
-        <>
-          <Select
-            placeholder="Select date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            variant="filled"
-            bg="white"
-            mb={4}
-          >
-            {availableDates.map((date) => (
-              <option key={date} value={date}>
-                {moment(date).format("MMMM D, YYYY")}
-                {moment(date).isSame(moment(), "day") ? " (Today)" : ""}
-              </option>
-            ))}
-          </Select>
-
-          <VStack spacing={8} mt={8}>
-            {paginatedGroupedSlots().map(([dateKey, slotsForDate]) => (
-              <Box key={dateKey} w="100%">
-                <Flex
-                  justify="space-between"
-                  align="center"
-                  onClick={() => toggleDateExpand(dateKey)}
-                  cursor="pointer"
-                  p={4}
-                  rounded="md"
-                  mb={4}
-                  bg="gray.100"
+              <Flex direction="column" align="center">
+                <Heading
+                  as="h1"
+                  size="xl"
+                  bgGradient="linear(to-r, blue.500, blue.600)"
+                  bgClip="text"
+                  fontWeight="extrabold"
+                  textAlign="center"
+                  letterSpacing="tight"
+                  pb={1}
                 >
-                  <Heading as="h2" size="lg">
-                    {moment(dateKey).format("MMMM D, YYYY")}
-                    {moment(dateKey).isSame(moment(), "day") && (
-                      <span style={{ marginLeft: "8px", color: "green" }}>
-                        (Today)
-                      </span>
-                    )}
-                  </Heading>
-                  {expandedDates[dateKey] ? (
-                    <ChevronUpIcon />
-                  ) : (
-                    <ChevronDownIcon />
-                  )}
-                </Flex>
-                {expandedDates[dateKey] && (
-                  <Grid
-                    templateColumns="repeat(auto-fill, minmax(300px, 1fr))"
-                    gap={6}
-                  >
-                    {groupSlotsByZone(slotsForDate).map(([zone, slots]) => (
-                      <Suspense
-                        key={zone}
-                        fallback={
-                          <Center bg="white" h="200px" rounded="md" shadow="md">
-                            <Spinner size="xl" />
-                          </Center>
-                        }
-                      >
-                        <LazyZoneCard
-                          zone={zone}
-                          slots={slots}
-                          onEditStall={handleOpenEditModal}
-                          onAddStall={handleAddStall}
-                          onDeleteZone={handleDeleteZone}
-                          date={dateKey}
-                        />
-                      </Suspense>
-                    ))}
-                  </Grid>
-                )}
-              </Box>
-            ))}
-          </VStack>
+                  {marketName}
+                </Heading>
+                <Text color="gray.500" fontSize="sm" fontWeight="medium">
+                  {selectedDate
+                    ? moment(selectedDate).format("MMMM D, YYYY")
+                    : "LOADING..."}
+                </Text>
+              </Flex>
 
-          <Suspense fallback={<Spinner />}>
+              <HStack spacing={3}>
+                <Button
+                  leftIcon={<Icon as={FaPlus} />}
+                  colorScheme="blue"
+                  size="lg"
+                  fontSize="md"
+                  onClick={() =>
+                    navigate("/configure", {
+                      state: { marketId: location.state?.marketId },
+                    })
+                  }
+                  _hover={{
+                    transform: "translateY(-2px)",
+                    shadow: "lg",
+                  }}
+                  transition="all 0.2s"
+                >
+                  Create Zone
+                </Button>
+              </HStack>
+            </HStack>
+          </Box>
+
+          {isLoading ? (
+            <Flex justify="center" align="center" minH="50vh">
+              <Spinner size="xl" color="blue.500" thickness="4px" />
+            </Flex>
+          ) : hasNoStalls ? (
+            <Card>
+              <CardBody>
+                <Alert
+                  status="info"
+                  variant="subtle"
+                  flexDirection="column"
+                  alignItems="center"
+                  justifyContent="center"
+                  textAlign="center"
+                  p={8}
+                  bg="transparent"
+                >
+                  <AlertIcon boxSize="40px" mr={0} />
+                  <AlertTitle mt={4} mb={1} fontSize="xl">
+                    No Stalls Available
+                  </AlertTitle>
+                  <AlertDescription maxW="sm" mb={4}>
+                    No stalls are currently available. Click below to create new
+                    stalls.
+                  </AlertDescription>
+                  <Button
+                    colorScheme="blue"
+                    size="lg"
+                    leftIcon={<AddIcon />}
+                    onClick={() =>
+                      navigate("/configure", {
+                        state: { marketId: location.state?.marketId },
+                      })
+                    }
+                  >
+                    Create Stalls
+                  </Button>
+                </Alert>
+              </CardBody>
+            </Card>
+          ) : (
+            <Card>
+              <CardBody>
+                <VStack spacing={6} align="stretch">
+                  <HStack justify="space-between">
+                    <Select
+                      placeholder="Select date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      maxW="300px"
+                      size="lg"
+                      icon={<CalendarIcon />}
+                    >
+                      {availableDates.map((date) => (
+                        <option key={date} value={date}>
+                          {moment(date).format("MMMM D, YYYY")}
+                          {moment(date).isSame(moment(), "day")
+                            ? " (Today)"
+                            : ""}
+                        </option>
+                      ))}
+                    </Select>
+                    <HStack>
+                      <Text color="gray.600">
+                        Total Zones:{" "}
+                        {Object.keys(groupSlotsByZone(filteredSlots)).length}
+                      </Text>
+                      <Text color="gray.600">
+                        Total Stalls: {filteredSlots.length}
+                      </Text>
+                    </HStack>
+                  </HStack>
+
+                  <Tabs variant="enclosed" colorScheme="blue">
+                    <TabList>
+                      <Tab>Grid View</Tab>
+                      <Tab>List View</Tab>
+                    </TabList>
+
+                    <TabPanels>
+                      <TabPanel px={0}>
+                        {isLoading ? (
+                          <Flex justify="center" p={8}>
+                            <Spinner
+                              size="xl"
+                              color="blue.500"
+                              thickness="4px"
+                            />
+                          </Flex>
+                        ) : (
+                          <SimpleGrid
+                            columns={{ base: 1, md: 2, lg: 3 }}
+                            spacing={6}
+                          >
+                            {groupSlotsByZone(filteredSlots).map(
+                              ([zone, slots]) => (
+                                <Suspense
+                                  key={zone}
+                                  fallback={
+                                    <Card height="200px">
+                                      <CardBody>
+                                        <Flex
+                                          justify="center"
+                                          align="center"
+                                          h="full"
+                                        >
+                                          <Spinner />
+                                        </Flex>
+                                      </CardBody>
+                                    </Card>
+                                  }
+                                >
+                                  <LazyZoneCard
+                                    zone={zone}
+                                    slots={slots}
+                                    onEditStall={handleOpenEditModal}
+                                    onAddStall={handleAddStall}
+                                    onDeleteZone={handleDeleteZone}
+                                    date={selectedDate}
+                                  />
+                                </Suspense>
+                              )
+                            )}
+                          </SimpleGrid>
+                        )}
+                      </TabPanel>
+
+                      <TabPanel px={0}>
+                        <Card>
+                          <CardBody>
+                            <VStack spacing={4} align="stretch">
+                              {isLoading ? (
+                                <Flex justify="center" p={8}>
+                                  <Spinner
+                                    size="xl"
+                                    color="blue.500"
+                                    thickness="4px"
+                                  />
+                                </Flex>
+                              ) : (
+                                <>
+                                  <HStack justify="space-between">
+                                    <InputGroup maxW="300px">
+                                      <InputLeftElement pointerEvents="none">
+                                        <Icon as={FaSearch} color="gray.400" />
+                                      </InputLeftElement>
+                                      <Input
+                                        placeholder="Search stalls..."
+                                        variant="filled"
+                                        value={searchTerm}
+                                        onChange={(e) =>
+                                          setSearchTerm(e.target.value)
+                                        }
+                                      />
+                                    </InputGroup>
+                                    <Menu>
+                                      <MenuButton
+                                        as={Button}
+                                        rightIcon={<ChevronDownIcon />}
+                                        variant="outline"
+                                      >
+                                        Sort By: {sortConfig.field}
+                                      </MenuButton>
+                                      <MenuList>
+                                        <MenuItem
+                                          onClick={() =>
+                                            setSortConfig({
+                                              field: "name",
+                                              order: sortConfig.order,
+                                            })
+                                          }
+                                          icon={
+                                            sortConfig.field === "name" ? (
+                                              <Icon
+                                                as={
+                                                  sortConfig.order === "asc"
+                                                    ? ChevronUpIcon
+                                                    : ChevronDownIcon
+                                                }
+                                              />
+                                            ) : undefined
+                                          }
+                                        >
+                                          Name
+                                        </MenuItem>
+                                        <MenuItem
+                                          onClick={() =>
+                                            setSortConfig({
+                                              field: "zone",
+                                              order: sortConfig.order,
+                                            })
+                                          }
+                                          icon={
+                                            sortConfig.field === "zone" ? (
+                                              <Icon
+                                                as={
+                                                  sortConfig.order === "asc"
+                                                    ? ChevronUpIcon
+                                                    : ChevronDownIcon
+                                                }
+                                              />
+                                            ) : undefined
+                                          }
+                                        >
+                                          Zone
+                                        </MenuItem>
+                                        <MenuItem
+                                          onClick={() =>
+                                            setSortConfig({
+                                              field: "price",
+                                              order: sortConfig.order,
+                                            })
+                                          }
+                                          icon={
+                                            sortConfig.field === "price" ? (
+                                              <Icon
+                                                as={
+                                                  sortConfig.order === "asc"
+                                                    ? ChevronUpIcon
+                                                    : ChevronDownIcon
+                                                }
+                                              />
+                                            ) : undefined
+                                          }
+                                        >
+                                          Price
+                                        </MenuItem>
+                                        <MenuItem
+                                          onClick={() =>
+                                            setSortConfig({
+                                              field: "status",
+                                              order: sortConfig.order,
+                                            })
+                                          }
+                                          icon={
+                                            sortConfig.field === "status" ? (
+                                              <Icon
+                                                as={
+                                                  sortConfig.order === "asc"
+                                                    ? ChevronUpIcon
+                                                    : ChevronDownIcon
+                                                }
+                                              />
+                                            ) : undefined
+                                          }
+                                        >
+                                          Status
+                                        </MenuItem>
+                                        <MenuDivider />
+                                        <MenuItem
+                                          onClick={() =>
+                                            setSortConfig((prev) => ({
+                                              ...prev,
+                                              order:
+                                                prev.order === "asc"
+                                                  ? "desc"
+                                                  : "asc",
+                                            }))
+                                          }
+                                          icon={
+                                            <Icon
+                                              as={
+                                                sortConfig.order === "asc"
+                                                  ? ChevronUpIcon
+                                                  : ChevronDownIcon
+                                              }
+                                            />
+                                          }
+                                        >
+                                          Toggle Order
+                                        </MenuItem>
+                                      </MenuList>
+                                    </Menu>
+                                  </HStack>
+
+                                  <TableView
+                                    slots={filteredSlots}
+                                    onEditStall={handleOpenEditModal}
+                                    sortConfig={sortConfig}
+                                    onSort={(field) => {
+                                      setSortConfig((prev) => ({
+                                        field,
+                                        order:
+                                          prev.field === field
+                                            ? prev.order === "asc"
+                                              ? "desc"
+                                              : "asc"
+                                            : "asc",
+                                      }));
+                                    }}
+                                  />
+
+                                  {filteredSlots.length === 0 ? (
+                                    <Alert status="info" variant="subtle">
+                                      <AlertIcon />
+                                      No stalls found for the selected date.
+                                    </Alert>
+                                  ) : (
+                                    <HStack justify="space-between" pt={4}>
+                                      <Text color="gray.600">
+                                        Showing {filteredSlots.length} stalls
+                                      </Text>
+                                    </HStack>
+                                  )}
+                                </>
+                              )}
+                            </VStack>
+                          </CardBody>
+                        </Card>
+                      </TabPanel>
+                    </TabPanels>
+                  </Tabs>
+                </VStack>
+              </CardBody>
+            </Card>
+          )}
+
+          <Suspense fallback={null}>
             <LazyEditStallModal
               isOpen={!!selectedSlot && !!selectedZoneId}
               onClose={handleCloseEditModal}
@@ -535,8 +955,8 @@ const GeneratedZonesPage: React.FC = () => {
               refetchMarketDetails={refetchMarketDetails}
             />
           </Suspense>
-        </>
-      )}
+        </Stack>
+      </Container>
     </Box>
   );
 };

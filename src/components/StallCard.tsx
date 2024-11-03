@@ -13,6 +13,7 @@ import {
   ModalContent,
   ModalHeader,
   ModalBody,
+  ModalFooter,
   ModalCloseButton,
   FormControl,
   FormLabel,
@@ -20,6 +21,16 @@ import {
   InputLeftAddon,
   Divider,
   Tooltip,
+  Badge,
+  Card,
+  CardBody,
+  Grid,
+  GridItem,
+  IconButton,
+  Tag,
+  TagLeftIcon,
+  Flex,
+  Icon,
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import { Slot } from "../types";
@@ -30,6 +41,7 @@ import {
   EntitiesSlotStatus,
   EntitiesCategory,
 } from "../api";
+import { FaDollarSign, FaRuler, FaTag } from "react-icons/fa";
 
 interface StallCardProps {
   slot: Slot;
@@ -156,152 +168,217 @@ const StallCard: React.FC<StallCardProps> = ({
   };
 
   return (
-    <>
-      <Box
-        borderWidth={1}
-        borderRadius="lg"
-        p={4}
-        boxShadow="md"
-        bg="white"
-        transition="all 0.2s"
-        _hover={{ boxShadow: "lg" }}
-      >
-        <VStack spacing={3} align="stretch">
-          <Text fontSize="xl" fontWeight="bold">
-            {slot.name}
-          </Text>
+    <Card
+      variant="outline"
+      shadow="md"
+      borderRadius="xl"
+      transition="all 0.2s"
+      _hover={{ shadow: "xl", transform: "translateY(-2px)" }}
+    >
+      <CardBody>
+        <VStack spacing={4} align="stretch">
+          <Flex justify="space-between" align="center">
+            <HStack spacing={2}>
+              <Text fontSize="xl" fontWeight="bold">
+                {slot.name}
+              </Text>
+              <Badge
+                colorScheme={slot.status === "booked" ? "red" : "green"}
+                variant="subtle"
+                fontSize="sm"
+                px={2}
+                py={1}
+                borderRadius="full"
+              >
+                {slot.status === "booked" ? "Book" : "Available"}
+              </Badge>
+            </HStack>
+          </Flex>
+
+          <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+            <Tag size="lg" variant="subtle" colorScheme="blue">
+              <TagLeftIcon as={FaRuler} />
+              <Text>
+                {slot.width}m × {slot.height}m
+              </Text>
+            </Tag>
+            <Tag size="lg" variant="subtle" colorScheme="green">
+              <TagLeftIcon as={FaDollarSign} />
+              <Text>${slot.price}</Text>
+            </Tag>
+          </Grid>
+
+          <Tag size="lg" variant="subtle" colorScheme="purple">
+            <TagLeftIcon as={FaTag} />
+            <Text>{slot.category}</Text>
+          </Tag>
+
           <Divider />
-          <Text>
-            Size: {slot.width} x {slot.height}
-          </Text>
-          <Text>Price: ${slot.price}</Text>
-          <Text>Category: {slot.category}</Text>
-          <Text>Status: {slot.status == "booked" ? "book" : slot.status}</Text>
-          <HStack justifyContent="space-between">
+
+          <Flex justify="space-between" align="center">
             <Button
               leftIcon={<EditIcon />}
-              onClick={() => setIsEditing(true)}
               colorScheme="blue"
+              variant="ghost"
               size="sm"
+              onClick={() => setIsEditing(true)}
             >
               Edit
             </Button>
             <Tooltip
               isDisabled={!isDeleteDisabled}
               label={deleteDisabledMessage}
-              hasArrow
               placement="top"
+              hasArrow
             >
-              <Button
-                leftIcon={<DeleteIcon />}
-                onClick={handleDelete}
+              <IconButton
+                aria-label="Delete stall"
+                icon={<DeleteIcon />}
                 colorScheme="red"
+                variant="ghost"
                 size="sm"
                 isLoading={isLoading}
                 isDisabled={isDeleteDisabled}
-              >
-                Delete
-              </Button>
+                onClick={handleDelete}
+              />
             </Tooltip>
-          </HStack>
+          </Flex>
         </VStack>
-      </Box>
+      </CardBody>
 
-      <Modal isOpen={isEditing} onClose={() => setIsEditing(false)}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit Stall</ModalHeader>
+      {/* Edit Modal */}
+      <Modal
+        isOpen={isEditing}
+        onClose={() => setIsEditing(false)}
+        size="xl"
+        motionPreset="slideInBottom"
+      >
+        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+        <ModalContent borderRadius="xl">
+          <ModalHeader>
+            <HStack spacing={2}>
+              <Text>Edit Stall</Text>
+              <Badge
+                colorScheme={slot.status === "booked" ? "red" : "green"}
+                variant="subtle"
+              >
+                {slot.status}
+              </Badge>
+            </HStack>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <VStack spacing={4} align="stretch">
+            <VStack spacing={6}>
               <FormControl>
                 <FormLabel>Name</FormLabel>
                 <Input
                   name="name"
                   value={editedSlot.name}
                   onChange={handleInputChange}
-                  placeholder="Stall Name"
+                  variant="filled"
+                  size="lg"
                 />
               </FormControl>
-              <HStack>
+
+              <Grid templateColumns="repeat(2, 1fr)" gap={4}>
                 <FormControl>
-                  <FormLabel>Width</FormLabel>
+                  <FormLabel>Width (m)</FormLabel>
                   <Input
                     name="width"
+                    type="number"
                     value={editedSlot.width}
                     onChange={handleInputChange}
-                    placeholder="Width"
-                    type="number"
+                    variant="filled"
+                    size="lg"
                   />
                 </FormControl>
                 <FormControl>
-                  <FormLabel>Height</FormLabel>
+                  <FormLabel>Height (m)</FormLabel>
                   <Input
                     name="height"
+                    type="number"
                     value={editedSlot.height}
                     onChange={handleInputChange}
-                    placeholder="Height"
-                    type="number"
+                    variant="filled"
+                    size="lg"
                   />
                 </FormControl>
-              </HStack>
+              </Grid>
+
               <FormControl>
                 <FormLabel>Price</FormLabel>
-                <InputGroup>
+                <InputGroup size="lg">
                   <InputLeftAddon children="$" />
                   <Input
                     name="price"
-                    value={editedSlot.price}
-                    onChange={handleInputChange}
-                    placeholder="Price"
                     type="number"
                     step="0.01"
+                    value={editedSlot.price}
+                    onChange={handleInputChange}
+                    variant="filled"
                   />
                 </InputGroup>
               </FormControl>
-              <FormControl>
-                <FormLabel>Category</FormLabel>
-                <Select
-                  name="category"
-                  value={editedSlot.category}
-                  onChange={handleInputChange}
-                >
-                  {Object.values(EntitiesCategory).map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Status</FormLabel>
-                <Select
-                  name="status"
-                  value={editedSlot.status}
-                  onChange={handleInputChange}
-                >
-                  {Object.values(EntitiesSlotStatus).map((status) => (
-                    <option key={status} value={status}>
-                      {status === "booked" ? "book" : status}
-                    </option>
-                  ))}
-                </Select>
-              </FormControl>
-              <HStack justifyContent="flex-end" mt={4}>
-                <Button onClick={() => setIsEditing(false)}>Cancel</Button>
-                <Button
-                  onClick={handleSave}
-                  colorScheme="blue"
-                  isLoading={isLoading}
-                >
-                  Save
-                </Button>
-              </HStack>
+
+              <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                <FormControl>
+                  <FormLabel>Category</FormLabel>
+                  <Select
+                    name="category"
+                    value={editedSlot.category}
+                    onChange={handleInputChange}
+                    variant="filled"
+                    size="lg"
+                  >
+                    {Object.values(EntitiesCategory).map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Status</FormLabel>
+                  <Select
+                    name="status"
+                    value={editedSlot.status}
+                    onChange={handleInputChange}
+                    variant="filled"
+                    size="lg"
+                  >
+                    {Object.values(EntitiesSlotStatus).map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
             </VStack>
           </ModalBody>
+          <ModalFooter>
+            <HStack spacing={3}>
+              <Button
+                variant="ghost"
+                onClick={() => setIsEditing(false)}
+                isDisabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                colorScheme="blue"
+                onClick={handleSave}
+                isLoading={isLoading}
+                leftIcon={<EditIcon />}
+              >
+                Save Changes
+              </Button>
+            </HStack>
+          </ModalFooter>
         </ModalContent>
       </Modal>
-    </>
+    </Card>
   );
 };
 

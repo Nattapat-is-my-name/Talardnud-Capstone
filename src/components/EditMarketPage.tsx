@@ -9,6 +9,10 @@ import {
   useToast,
   useColorModeValue,
   Button,
+  Icon,
+  Center,
+  Spinner,
+  Text,
 } from "@chakra-ui/react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -20,6 +24,7 @@ import {
 import MarketProfileForm from "./MarketProfileForm";
 import ImageUpload from "./ImageUpload";
 import { useAuth } from "../contexts/AuthContext";
+import { FaArrowLeft } from "react-icons/fa";
 
 const EditMarketPage: React.FC = () => {
   const { marketId } = useParams<{ marketId: string }>();
@@ -135,12 +140,33 @@ const EditMarketPage: React.FC = () => {
   );
 
   if (isLoading) {
-    return <Box>Loading...</Box>;
+    return (
+      <Box minH="100vh" bg={bgColor}>
+        <Center minH="100vh">
+          <VStack spacing={4}>
+            <Spinner
+              thickness="4px"
+              speed="0.65s"
+              emptyColor="gray.200"
+              color={"blue"}
+              size="xl"
+            />
+          </VStack>
+        </Center>
+      </Box>
+    );
   }
 
   return (
     <Box minH="100vh" bg={bgColor} py={12} px={6}>
       <Container maxW="1600px">
+        <Button
+          leftIcon={<Icon as={FaArrowLeft} />}
+          variant="ghost"
+          onClick={() => navigate(`/market/${marketId}`)}
+        >
+          Back
+        </Button>
         <VStack spacing={16}>
           <Heading as="h1" size="2xl" textAlign="center">
             Edit Market Profile

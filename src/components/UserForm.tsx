@@ -57,6 +57,14 @@ const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
     };
   }, []);
 
+  // Function to get tomorrow's date
+  const getTomorrow = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    return tomorrow;
+  };
+
   const handleInputChange = useCallback((field: string, value: any) => {
     console.log(`Updating ${field} with value:`, value);
     setFormState((prev) => ({
@@ -75,9 +83,33 @@ const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
 
   const handleDateChange = useCallback((dates: DateObject | DateObject[]) => {
     console.log("Selected dates:", dates);
+    const tomorrow = getTomorrow();
+
+    // If single date selected
+    if (!Array.isArray(dates)) {
+      const selectedDate = new Date(
+        dates.year,
+        dates.month.number - 1,
+        dates.day
+      );
+      if (selectedDate >= tomorrow) {
+        setFormState((prev) => ({
+          ...prev,
+          selectedDates: [dates],
+        }));
+      }
+      return;
+    }
+
+    // Filter out past dates and today for multiple selections
+    const validDates = dates.filter((date) => {
+      const selectedDate = new Date(date.year, date.month.number - 1, date.day);
+      return selectedDate >= tomorrow;
+    });
+
     setFormState((prev) => ({
       ...prev,
-      selectedDates: Array.isArray(dates) ? dates : [dates],
+      selectedDates: validDates,
     }));
   }, []);
 
@@ -177,20 +209,6 @@ const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
         return;
       }
 
-      console.log(
-        zones.map((zone) => ({
-          zone: zone.zone,
-          date: new Date(zone.date).toISOString(),
-          stalls: zone.stalls.map((stall) => ({
-            name: stall.name,
-            width: stall.width,
-            height: stall.height,
-            stallType: stall.stallType,
-            price: stall.pricePerStall,
-          })),
-        }))
-      );
-
       const layout = zones.map((zone) => ({
         zone: zone.zone,
         date: new Date(zone.date).toISOString(),
@@ -205,9 +223,6 @@ const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
 
       const formattedLayout: DtosLayoutRequest = { layout };
 
-      console.log("Form submitted with the following layout:");
-      console.log(JSON.stringify(formattedLayout, null, 2));
-
       try {
         const config = new Configuration({
           basePath: process.env.REACT_APP_API_BASE_URL,
@@ -215,9 +230,6 @@ const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
         });
 
         const slotsApi = new SlotsApi(config);
-
-        console.log("Submitting layout to API", marketId);
-
         const response = await slotsApi.slotsMarketIdCreatePost(
           marketId,
           formattedLayout
@@ -232,9 +244,6 @@ const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
           duration: 5000,
           isClosable: true,
         });
-
-        console.log("Navigating to generated zones page");
-        console.log("Market ID:", marketId);
 
         navigate("/generated-zones", { state: { marketId: marketId } });
       } catch (error) {
@@ -251,26 +260,33 @@ const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
     },
     [zones, navigate, formState, toast, marketId, token]
   );
+
   const renderDatePicker = useCallback(
     () => (
       <FormControl isRequired>
         <FormLabel fontWeight="medium">Select Dates</FormLabel>
-        <DatePicker
-          value={formState.selectedDates}
-          onChange={handleDateChange}
-          multiple
-          format="MMMM D, YYYY"
-          render={<Input readOnly placeholder="Click to select dates" />}
-        />
-        {formState.selectedDates.length > 0 && (
-          <Text fontSize="sm" mt={2}>
-            Selected dates:{" "}
-            {formState.selectedDates
-              .sort((a, b) => a.toDate().getTime() - b.toDate().getTime())
-              .map((date) => date.format("MMM D, YYYY"))
-              .join(", ")}
+        <VStack align="stretch" spacing={1}>
+          <DatePicker
+            value={formState.selectedDates}
+            onChange={handleDateChange}
+            multiple
+            format="MMMM D, YYYY"
+            render={<Input readOnly placeholder="Click to select dates" />}
+            minDate={getTomorrow()}
+          />
+          <Text fontSize="xs" color="gray.500" mt={1}>
+            Only future dates can be selected
           </Text>
-        )}
+          {formState.selectedDates.length > 0 && (
+            <Text fontSize="sm" mt={2}>
+              Selected dates:{" "}
+              {formState.selectedDates
+                .sort((a, b) => a.toDate().getTime() - b.toDate().getTime())
+                .map((date) => date.format("MMM D, YYYY"))
+                .join(", ")}
+            </Text>
+          )}
+        </VStack>
       </FormControl>
     ),
     [formState.selectedDates, handleDateChange]
@@ -306,8 +322,6 @@ const UserForm: React.FC<UserFormProps> = ({ marketId }) => {
   );
 
   const bgColor = useColorModeValue("white", "gray.800");
-
-  console.log("Rendering UserForm component");
 
   return (
     <Box bg={bgColor} p={8} rounded="xl" maxWidth="600px" margin="auto">
