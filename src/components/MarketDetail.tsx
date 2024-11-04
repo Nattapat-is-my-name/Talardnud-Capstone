@@ -233,6 +233,10 @@ const MarketDetail: React.FC = () => {
       <Button
         leftIcon={<Icon as={FaArrowLeft} />}
         variant="ghost"
+        _hover={{
+          transform: "translateX(-4px)",
+          transition: "all 0.2s",
+        }}
         onClick={() => navigate(`/market`)}
       >
         Back to All Market
@@ -244,6 +248,10 @@ const MarketDetail: React.FC = () => {
             <Button
               leftIcon={<Icon as={MdOutlineAnalytics} />}
               colorScheme="orange"
+              _hover={{
+                transform: "translateY(-2px)",
+                shadow: "md",
+              }}
               onClick={() => {
                 navigate(`/report`, {
                   state: { marketId: market.id },
@@ -255,6 +263,10 @@ const MarketDetail: React.FC = () => {
             <Button
               leftIcon={<Icon as={EditIcon} />}
               colorScheme="blue"
+              _hover={{
+                transform: "translateY(-2px)",
+                shadow: "md",
+              }}
               onClick={handleEditProfile}
             >
               Edit Profile
@@ -400,6 +412,10 @@ const MarketDetail: React.FC = () => {
                 navigate("/generated-zones", { state: { marketId: marketId } });
               }}
               leftIcon={<Icon as={EditIcon} />}
+              _hover={{
+                transform: "translateY(-2px)",
+                shadow: "md",
+              }}
               ml={4}
             >
               Edit Stall
@@ -409,6 +425,10 @@ const MarketDetail: React.FC = () => {
               colorScheme="blue"
               onClick={handleCreateStall}
               leftIcon={<Icon as={FaPlus} />}
+              _hover={{
+                transform: "translateY(-2px)",
+                shadow: "md",
+              }}
               ml={4}
             >
               Create Stalls

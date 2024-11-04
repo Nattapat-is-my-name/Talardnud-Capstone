@@ -328,6 +328,10 @@ const ReportPage: React.FC = () => {
       <Button
         leftIcon={<Icon as={FaArrowLeft} />}
         variant="ghost"
+        _hover={{
+          transform: "translateX(-4px)",
+          transition: "all 0.2s",
+        }}
         onClick={() => navigate(`/market/${marketId}`)}
       >
         Back to Market
