@@ -120,9 +120,10 @@ const BookingPage: React.FC = () => {
     "linear(to-r, blue.400, blue.600)",
     "linear(to-r, blue.200, blue.400)"
   );
+  const textColor = useColorModeValue("gray.700", "white");
   const statBg = useColorModeValue("white", "gray.800");
   const hoverBg = useColorModeValue("gray.50", "gray.700");
-
+  // Keep the existing helper functions and hooks
   const formatSlotInfo = useCallback((slotId: string | undefined) => {
     if (!slotId) return { zone: "N/A", slot: "N/A" };
     const parts = slotId.split("-");
@@ -135,6 +136,7 @@ const BookingPage: React.FC = () => {
     return { zone: "Unknown", slot: slotId };
   }, []);
 
+  // Keep existing fetch functions
   const fetchMarkets = useCallback(async () => {
     if (!token || !providerId) {
       setIsLoadingMarkets(false);
@@ -262,18 +264,31 @@ const BookingPage: React.FC = () => {
     );
   });
 
-  const getStatColor = (type: string): string => {
+  const getStatusTextColor = (type: string): string => {
     switch (type) {
       case "completed":
-        return "green.500";
+        return "green.600";
       case "cancelled":
-        return "red.500";
+        return "red.600";
       case "pending":
-        return "yellow.500";
+        return "yellow.600";
       case "refund":
-        return "orange.500";
+        return "orange.600";
       default:
-        return "blue.500";
+        return "blue.600";
+    }
+  };
+
+  const getStatusColor = (status: string | undefined): string => {
+    switch (status) {
+      case "completed":
+        return "green";
+      case "cancelled":
+        return "red";
+      case "refund":
+        return "orange";
+      default:
+        return "yellow";
     }
   };
 
@@ -341,59 +356,79 @@ const BookingPage: React.FC = () => {
             >
               <CardBody>
                 <Stack spacing={6}>
-                  {/* Stats Section */}
+                  {/* Replace the existing Stats Section with this */}
                   {bookings && (
-                    <SimpleGrid columns={{ base: 2, md: 5 }} spacing={4} mb={4}>
+                    <SimpleGrid columns={{ base: 2, md: 5 }} spacing={4} mb={6}>
                       {Object.entries(getBookingStats()).map(([key, value]) => (
-                        <Stat
+                        <Card
                           key={key}
-                          bg={statBg}
-                          p={4}
+                          bg={cardBgColor}
+                          boxShadow="sm"
+                          borderWidth="1px"
+                          borderColor={borderColor}
                           borderRadius="lg"
-                          display="flex"
-                          flexDirection="column"
-                          alignItems="center"
-                          textAlign="center"
-                          position="relative"
-                          overflow="hidden"
-                          shadow="sm"
-                          _before={{
-                            content: '""',
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: "4px",
-                            bgColor: getStatColor(key),
+                          transition="all 0.2s"
+                          _hover={{
+                            boxShadow: "md",
+                            transform: "translateY(-2px)",
                           }}
                         >
-                          <StatLabel
-                            textTransform="capitalize"
-                            fontSize="sm"
-                            color="gray.500"
-                            mb={2}
-                          >
-                            {key}
-                          </StatLabel>
-                          <StatNumber
-                            fontSize="3xl"
-                            fontWeight="bold"
-                            lineHeight="1"
-                            my={2}
-                            color={getStatColor(key)}
-                          >
-                            {value}
-                          </StatNumber>
-                          {key !== "total" && (
-                            <StatHelpText fontSize="sm" color="gray.500" mt={2}>
-                              {(
-                                (value / getBookingStats().total) *
-                                100
-                              ).toFixed(1)}
-                              %
-                            </StatHelpText>
-                          )}
-                        </Stat>
+                          <CardBody p={4}>
+                            <Stat textAlign="center">
+                              <StatLabel
+                                fontSize="sm"
+                                color={
+                                  key !== "total"
+                                    ? getStatusTextColor(key)
+                                    : "gray.500"
+                                }
+                                fontWeight="medium"
+                                textTransform="capitalize"
+                                mb={2}
+                              >
+                                {key}
+                              </StatLabel>
+                              <StatNumber
+                                fontSize={{ base: "2xl", md: "3xl" }}
+                                fontWeight="bold"
+                                color={textColor}
+                                my={2}
+                                display="flex"
+                                justifyContent="center"
+                                alignItems="center"
+                              >
+                                {value}
+                              </StatNumber>
+                              {key !== "total" && value > 0 && (
+                                <StatHelpText
+                                  fontSize="xs"
+                                  color={getStatusTextColor(key)}
+                                  display="inline-flex"
+                                  alignItems="center"
+                                  justifyContent="center"
+                                  gap={1}
+                                  margin={0}
+                                  opacity={0.8}
+                                >
+                                  {(
+                                    (value / getBookingStats().total) *
+                                    100
+                                  ).toFixed(1)}
+                                  %
+                                </StatHelpText>
+                              )}
+                              {value === 0 && (
+                                <StatHelpText
+                                  fontSize="xs"
+                                  color="gray.400"
+                                  margin={0}
+                                >
+                                  No data
+                                </StatHelpText>
+                              )}
+                            </Stat>
+                          </CardBody>
+                        </Card>
                       ))}
                     </SimpleGrid>
                   )}
@@ -517,18 +552,11 @@ const BookingPage: React.FC = () => {
                                 <Td>{booking.vendor?.username || "N/A"}</Td>
                                 <Td>
                                   <Badge
-                                    colorScheme={
-                                      booking.status === "cancelled"
-                                        ? "red"
-                                        : booking.status === "completed"
-                                        ? "green"
-                                        : booking.status === "refund"
-                                        ? "orange"
-                                        : "yellow"
-                                    }
+                                    colorScheme={getStatusColor(booking.status)}
                                     px={2}
                                     py={1}
                                     borderRadius="full"
+                                    variant="subtle"
                                   >
                                     {booking.status || "Unknown"}
                                   </Badge>
