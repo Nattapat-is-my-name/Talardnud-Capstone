@@ -460,6 +460,18 @@ export interface DtosRegisterRequest {
      */
     'email': string;
     /**
+     * Required, min 3, max 50 characters
+     * @type {string}
+     * @memberof DtosRegisterRequest
+     */
+    'firstname': string;
+    /**
+     * Required, min 3, max 50 characters
+     * @type {string}
+     * @memberof DtosRegisterRequest
+     */
+    'lastname': string;
+    /**
      * Required, min 8 characters for password
      * @type {string}
      * @memberof DtosRegisterRequest
@@ -495,7 +507,19 @@ export interface DtosRegisterResponse {
      * @type {string}
      * @memberof DtosRegisterResponse
      */
+    'firstname'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DtosRegisterResponse
+     */
     'id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DtosRegisterResponse
+     */
+    'lastname'?: string;
     /**
      * 
      * @type {string}
@@ -718,7 +742,8 @@ export interface EntitiesBooking {
 export const EntitiesBookingStatus = {
     StatusPending: 'pending',
     StatusCancelled: 'cancelled',
-    StatusCompleted: 'completed'
+    StatusCompleted: 'completed',
+    StatusRefunded: 'refund'
 } as const;
 
 export type EntitiesBookingStatus = typeof EntitiesBookingStatus[keyof typeof EntitiesBookingStatus];
@@ -1146,7 +1171,8 @@ export interface EntitiesPayment {
 export const EntitiesPaymentStatus = {
     PaymentPending: 'pending',
     PaymentCompleted: 'completed',
-    PaymentFailed: 'failed'
+    PaymentFailed: 'failed',
+    PaymentRefunded: 'refund'
 } as const;
 
 export type EntitiesPaymentStatus = typeof EntitiesPaymentStatus[keyof typeof EntitiesPaymentStatus];
@@ -1374,7 +1400,8 @@ export interface EntitiesTransaction {
 export const EntitiesTransactionStatus = {
     TransactionPending: 'pending',
     TransactionCompleted: 'completed',
-    TransactionFailed: 'failed'
+    TransactionFailed: 'failed',
+    TransactionRefunded: 'refund'
 } as const;
 
 export type EntitiesTransactionStatus = typeof EntitiesTransactionStatus[keyof typeof EntitiesTransactionStatus];
@@ -1854,6 +1881,40 @@ export const BookingsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
+         * Get bookings by market with the provided ID
+         * @summary Get bookings by market
+         * @param {string} id Market ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        bookingsMarketIdGet: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('bookingsMarketIdGet', 'id', id)
+            const localVarPath = `/bookings/market/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get bookings by user with the provided ID
          * @summary Get bookings by user
          * @param {string} id User ID
@@ -1924,6 +1985,19 @@ export const BookingsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Get bookings by market with the provided ID
+         * @summary Get bookings by market
+         * @param {string} id Market ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async bookingsMarketIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<EntitiesBooking>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.bookingsMarketIdGet(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BookingsApi.bookingsMarketIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Get bookings by user with the provided ID
          * @summary Get bookings by user
          * @param {string} id User ID
@@ -1967,6 +2041,16 @@ export const BookingsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.bookingsGetIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
+         * Get bookings by market with the provided ID
+         * @summary Get bookings by market
+         * @param {string} id Market ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        bookingsMarketIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<EntitiesBooking>> {
+            return localVarFp.bookingsMarketIdGet(id, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get bookings by user with the provided ID
          * @summary Get bookings by user
          * @param {string} id User ID
@@ -2008,6 +2092,18 @@ export class BookingsApi extends BaseAPI {
      */
     public bookingsGetIdGet(id: string, options?: RawAxiosRequestConfig) {
         return BookingsApiFp(this.configuration).bookingsGetIdGet(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get bookings by market with the provided ID
+     * @summary Get bookings by market
+     * @param {string} id Market ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BookingsApi
+     */
+    public bookingsMarketIdGet(id: string, options?: RawAxiosRequestConfig) {
+        return BookingsApiFp(this.configuration).bookingsMarketIdGet(id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
