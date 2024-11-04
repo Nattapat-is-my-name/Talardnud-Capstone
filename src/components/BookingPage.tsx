@@ -38,6 +38,7 @@ import {
   StatLabel,
   StatNumber,
   StatHelpText,
+  IconButton,
 } from "@chakra-ui/react";
 import {
   FaArrowLeft,
@@ -45,6 +46,8 @@ import {
   FaSortDown,
   FaSearch,
   FaFilter,
+  FaSync,
+  FaClock,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Configuration, BookingsApi, MarketApi, EntitiesMarket } from "../api";
@@ -111,6 +114,9 @@ const BookingPage: React.FC = () => {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [searchTerm, setSearchTerm] = useState("");
+  const [lastUpdated, setLastUpdated] = useState<string>(
+    moment().format("MMM D, YYYY HH:mm")
+  );
 
   // Color mode values
   const bgColor = useColorModeValue("gray.50", "gray.900");
@@ -186,6 +192,8 @@ const BookingPage: React.FC = () => {
 
       if (response.status === 200 && Array.isArray(response.data.data)) {
         setBookings(response.data.data);
+        // Update the timestamp when new data is received
+        setLastUpdated(moment().format("MMM D, YYYY HH:mm"));
       } else {
         setBookings([]);
       }
@@ -358,79 +366,119 @@ const BookingPage: React.FC = () => {
                 <Stack spacing={6}>
                   {/* Replace the existing Stats Section with this */}
                   {bookings && (
-                    <SimpleGrid columns={{ base: 2, md: 5 }} spacing={4} mb={6}>
-                      {Object.entries(getBookingStats()).map(([key, value]) => (
-                        <Card
-                          key={key}
-                          bg={cardBgColor}
-                          boxShadow="sm"
-                          borderWidth="1px"
-                          borderColor={borderColor}
-                          borderRadius="lg"
-                          transition="all 0.2s"
-                          _hover={{
-                            boxShadow: "md",
-                            transform: "translateY(-2px)",
-                          }}
-                        >
-                          <CardBody p={4}>
-                            <Stat textAlign="center">
-                              <StatLabel
-                                fontSize="sm"
-                                color={
-                                  key !== "total"
-                                    ? getStatusTextColor(key)
-                                    : "gray.500"
-                                }
-                                fontWeight="medium"
-                                textTransform="capitalize"
-                                mb={2}
-                              >
-                                {key}
-                              </StatLabel>
-                              <StatNumber
-                                fontSize={{ base: "2xl", md: "3xl" }}
-                                fontWeight="bold"
-                                color={textColor}
-                                my={2}
-                                display="flex"
-                                justifyContent="center"
-                                alignItems="center"
-                              >
-                                {value}
-                              </StatNumber>
-                              {key !== "total" && value > 0 && (
-                                <StatHelpText
-                                  fontSize="xs"
-                                  color={getStatusTextColor(key)}
-                                  display="inline-flex"
-                                  alignItems="center"
-                                  justifyContent="center"
-                                  gap={1}
-                                  margin={0}
-                                  opacity={0.8}
-                                >
-                                  {(
-                                    (value / getBookingStats().total) *
-                                    100
-                                  ).toFixed(1)}
-                                  %
-                                </StatHelpText>
-                              )}
-                              {value === 0 && (
-                                <StatHelpText
-                                  fontSize="xs"
-                                  color="gray.400"
-                                  margin={0}
-                                >
-                                  No data
-                                </StatHelpText>
-                              )}
-                            </Stat>
-                          </CardBody>
-                        </Card>
-                      ))}
-                    </SimpleGrid>
+                    <Box>
+                      <HStack
+                        spacing={4}
+                        bg="white"
+                        p={2}
+                        borderRadius="lg"
+                        shadow="sm"
+                        justifyContent={"end"}
+                      >
+                        <HStack>
+                          <IconButton
+                            aria-label="Refresh data"
+                            icon={<Icon as={FaSync} />}
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => fetchBookings()}
+                            isLoading={isLoading}
+                            _hover={{
+                              bg: "gray.50",
+                              transform: "rotate(180deg)",
+                              transition: "all 0.3s ease",
+                            }}
+                            borderRadius="full"
+                          />
+
+                          <Text>
+                            Last updated:{" "}
+                            <Text as="span" color="gray.700">
+                              {moment(lastUpdated).format("MMM D, YYYY HH:mm")}
+                            </Text>
+                          </Text>
+                        </HStack>
+                      </HStack>
+                      <SimpleGrid
+                        columns={{ base: 2, md: 5 }}
+                        spacing={4}
+                        mb={6}
+                      >
+                        {Object.entries(getBookingStats()).map(
+                          ([key, value]) => (
+                            <Card
+                              key={key}
+                              bg={cardBgColor}
+                              boxShadow="sm"
+                              borderWidth="1px"
+                              borderColor={borderColor}
+                              borderRadius="lg"
+                              transition="all 0.2s"
+                              _hover={{
+                                boxShadow: "md",
+                                transform: "translateY(-2px)",
+                              }}
+                            >
+                              <CardBody p={4}>
+                                <Stat textAlign="center">
+                                  <StatLabel
+                                    fontSize="sm"
+                                    color={
+                                      key !== "total"
+                                        ? getStatusTextColor(key)
+                                        : "gray.500"
+                                    }
+                                    fontWeight="medium"
+                                    textTransform="capitalize"
+                                    mb={2}
+                                  >
+                                    {key}
+                                  </StatLabel>
+                                  <StatNumber
+                                    fontSize={{ base: "2xl", md: "3xl" }}
+                                    fontWeight="bold"
+                                    color={textColor}
+                                    my={2}
+                                    display="flex"
+                                    justifyContent="center"
+                                    alignItems="center"
+                                  >
+                                    {value}
+                                  </StatNumber>
+                                  {key !== "total" && value > 0 && (
+                                    <StatHelpText
+                                      fontSize="xs"
+                                      color={getStatusTextColor(key)}
+                                      display="inline-flex"
+                                      alignItems="center"
+                                      justifyContent="center"
+                                      gap={1}
+                                      margin={0}
+                                      opacity={0.8}
+                                    >
+                                      {(
+                                        (value / getBookingStats().total) *
+                                        100
+                                      ).toFixed(1)}
+                                      %
+                                    </StatHelpText>
+                                  )}
+                                  {value === 0 && (
+                                    <StatHelpText
+                                      fontSize="xs"
+                                      color="gray.400"
+                                      margin={0}
+                                    >
+                                      No data
+                                    </StatHelpText>
+                                  )}
+                                </Stat>
+                              </CardBody>
+                            </Card>
+                          )
+                        )}
+                      </SimpleGrid>
+                    </Box>
                   )}
 
                   {/* Search and Filters */}
