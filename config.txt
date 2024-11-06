@@ -1,256 +1,31 @@
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  Box,
-  Heading,
-  Grid,
-  GridItem,
-  Text,
-  Container,
-  VStack,
-  useColorModeValue,
-  useToast,
-  Button,
-  UnorderedList,
-  HStack,
-  ListItem,
-  ListIcon,
-} from "@chakra-ui/react";
-import { CheckCircleIcon } from "@chakra-ui/icons";
-import ImageUpload from "./ImageUpload";
-import UserForm from "./UserForm";
-import { useMarket } from "../contexts/MarketProvider";
-import { useLocation, useNavigate } from "react-router-dom";
-import { MarketApi, Configuration, DtosMarketEditRequest } from "../api";
-import { useAuth } from "../contexts/AuthContext";
+<b style="color:#146148;">Frontend:</b><br>
+- Language: <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Dart-logo.png" width="20"> Dart 
+<img src="https://cdn.simpleicons.org/typescript/3178C6" width="20"> TypeScript <br>
+- Framework: <img src="https://storage.googleapis.com/cms-storage-bucket/4fd5520fe28ebf839174.svg" width="20"> Flutter 
+<img src="https://cdn.simpleicons.org/react/61DAFB" width="20"> React <br><br>
 
-const ConfigurePage: React.FC = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const toast = useToast();
-  const { token } = useAuth();
-  const marketId = location.state?.marketId;
-  const { selectedImage, setSelectedImage, zones } = useMarket();
-  const [layoutImage, setLayoutImage] = useState<string | undefined>(undefined);
-  const [marketDetails, setMarketDetails] =
-    useState<DtosMarketEditRequest | null>(null);
+<b style="color:#146148;">Backend:</b><br>
+- Language: <img src="https://go.dev/blog/go-brand/Go-Logo/PNG/Go-Logo_Blue.png" width="20"> Golang <br>
+- Framework: <img src="https://miro.medium.com/v2/resize:fit:1364/1*5gMIBFvpNJivfyqv1ApwzA.png" width="40"> Fiber <br>
+- Authentication: <img src="https://seeklogo.com/images/J/jwt-logo-65D86B4640-seeklogo.com.png" width="40"> JWT <br><br>
 
-  const bgColor = useColorModeValue("gray.50", "gray.900");
-  const cardBgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
+<b style="color:#146148;">Database:</b><br>
+- Relational Database: <img src="https://cdn.simpleicons.org/mariadb/003545" width="30"> MariaDB <br>
+- Object Storage: <img src="https://swimburger.net/media/ppnn3pcl/azure.png" width="30"> Microsoft Azure <br><br>
 
-  const fetchMarketDetails = useCallback(async () => {
-    if (!marketId || !token) return;
+<b style="color:#146148;">Infrastructure:</b><br>
+- Container: <img src="https://cdn.simpleicons.org/docker/2496ED" width="20"> Docker <br>
+- OS: <img src="https://cdn.simpleicons.org/ubuntu/E95420" width="20"> Ubuntu Live Server, 
+<img src="https://365cloudstore.com/wp-content/uploads/2023/02/windows-server-500x500-01.png" width="20"> Windows Server <br><br>
 
-    try {
-      const config = new Configuration({
-        basePath: process.env.REACT_APP_API_BASE_URL,
-        accessToken: token,
-      });
-      const marketApi = new MarketApi(config);
-      const response = await marketApi.marketsGetIdGet(marketId);
-      if (response.data && response.data.data && response.data.data[0]) {
-        const market = response.data.data[0];
-        setMarketDetails({
-          name: market.name || "",
-          address: market.address || "",
-          description: market.description || "",
-          open_time: market.open_time || "",
-          close_time: market.close_time || "",
-          provider_id: market.provider_id || "",
-          image: market.image || "",
-          layout_image: market.layout_image || "",
-          latitude: market.latitude || "",
-          longitude: market.longitude || "",
-          phone: market.phone || "",
-        });
-        setLayoutImage(market.layout_image);
-      }
-    } catch (error) {
-      console.error("Error fetching market details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch market details",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  }, [marketId, token, toast]);
-
-  useEffect(() => {
-    fetchMarketDetails();
-  }, [fetchMarketDetails]);
-
-  const handleLayoutImageUpdate = useCallback(
-    (value: React.SetStateAction<string | undefined>) => {
-      setLayoutImage(value);
-    },
-    []
-  );
-
-  const handleMarketUpdate = async () => {
-    if (!marketId || !token || !marketDetails) return;
-
-    try {
-      const config = new Configuration({
-        basePath: process.env.REACT_APP_API_BASE_URL,
-        accessToken: token,
-      });
-      const marketApi = new MarketApi(config);
-
-      const updateData: DtosMarketEditRequest = {
-        ...marketDetails,
-        layout_image: layoutImage,
-      };
-
-      await marketApi.marketsEditIdPatch(marketId, updateData);
-
-      toast({
-        title: "Success",
-        description: "Market layout image updated successfully",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-      navigate(`/markets/${marketId}`);
-    } catch (error) {
-      console.error("Error updating market layout image:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update market layout image",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  };
-
-  return (
-    <Box minH="100vh" bg={bgColor} py={8} px={4}>
-      <Container maxW="1800px">
-        <VStack spacing={12}>
-          <Heading as="h1" size="2xl" textAlign="center">
-            Market Layout Configuration
-          </Heading>
-          <Grid
-            templateColumns={{ base: "1fr", lg: "3fr 2fr" }}
-            gap={8}
-            w="full"
-          >
-            <GridItem>
-              <Box
-                bg={cardBgColor}
-                p={6}
-                rounded="xl"
-                shadow="lg"
-                height="100%"
-                minH={{ base: "auto", lg: "800px" }}
-                borderWidth="1px"
-                borderColor={borderColor}
-                display="flex"
-                flexDirection="column"
-              >
-                <Heading as="h2" size="xl" mb={6}>
-                  Layout Image
-                </Heading>
-                <ImageUpload
-                  selectedImage={layoutImage}
-                  setSelectedImage={handleLayoutImageUpdate}
-                />
-                <Button
-                  mt="auto"
-                  colorScheme="blue"
-                  onClick={handleMarketUpdate}
-                  isDisabled={!marketDetails}
-                  width="100%"
-                  p={6}
-                >
-                  Update Layout Image
-                </Button>
-              </Box>
-            </GridItem>
-            <GridItem>
-              <Box
-                bg={cardBgColor}
-                p={6}
-                rounded="xl"
-                shadow="lg"
-                height="100%"
-                minH={{ base: "auto", lg: "800px" }}
-                borderWidth="1px"
-                borderColor={borderColor}
-              >
-                <UserForm marketId={marketId} />
-              </Box>
-            </GridItem>
-          </Grid>
-
-          {zones.length > 0 && (
-            <Box w="full">
-              <Heading as="h3" size="lg" mb={6} fontWeight="semibold">
-                Generated Zones
-              </Heading>
-              <Grid
-                templateColumns={{
-                  base: "1fr",
-                  md: "repeat(2, 1fr)",
-                  lg: "repeat(3, 1fr)",
-                }}
-                gap={6}
-              >
-                {zones.map((zone) => (
-                  <GridItem key={zone.id}>
-                    <Box
-                      borderWidth="1px"
-                      borderRadius="lg"
-                      borderColor={borderColor}
-                      overflow="hidden"
-                    >
-                      <Box
-                        p={6}
-                        bg={cardBgColor}
-                        borderBottomWidth="1px"
-                        borderColor={borderColor}
-                      >
-                        <Heading as="h4" size="md" mb={3} fontWeight="semibold">
-                          Zone {zone.zone}
-                        </Heading>
-                        <Text fontSize="sm" mb={2}>
-                          <Text as="span" fontWeight="medium">
-                            Date:
-                          </Text>{" "}
-                          {zone.date.toDateString()}
-                        </Text>
-                        <Text fontSize="sm">
-                          <Text as="span" fontWeight="medium">
-                            Number of Stalls:
-                          </Text>{" "}
-                          {zone.stalls.length}
-                        </Text>
-                      </Box>
-                      <Box p={6} maxH="300px" overflowY="auto">
-                        <UnorderedList spacing={2}>
-                          {zone.stalls.map((stall) => (
-                            <ListItem key={stall.id}>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              {stall.name}
-                            </ListItem>
-                          ))}
-                        </UnorderedList>
-                      </Box>
-                    </Box>
-                  </GridItem>
-                ))}
-              </Grid>
-            </Box>
-          )}
-        </VStack>
-      </Container>
-    </Box>
-  );
-};
-
-export default ConfigurePage;
+<b style="color:#146148;">Other Tools:</b><br>
+- Coding Tool: <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/visual-studio-code-icon.png" width="20"> Visual Studio Code, 
+<img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/android-studio-icon.png" width="20"> Android Studio, 
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Xcode.svg/2048px-Xcode.svg.png" width="20"> Xcode <br>
+- Design: <img src="https://cdn.simpleicons.org/figma/F24E1E" width="20"> Figma, 
+<img src="https://cdn.simpleicons.org/canva/00C4CC" width="20"> Canva <br>
+- Version Control: <img src="https://cdn.simpleicons.org/github/181717" width="20"> GitHub <br>
+- API Testing: <img src="https://cdn.simpleicons.org/postman/FF6C37" width="20"> Postman <br>
+- Communication: <img src="https://cdn.simpleicons.org/line/00C300" width="20"> Line, 
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg/2203px-Microsoft_Office_Teams_%282018%E2%80%93present%29.svg.png" width="20"> Microsoft Teams, 
+<img src="https://cdn.simpleicons.org/discord/5865F2" width="20"> Discord

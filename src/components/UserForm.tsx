@@ -30,7 +30,15 @@ import { useMarket } from "../contexts/MarketProvider";
 import { SlotsApi, Configuration, DtosLayoutRequest } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 
-const STALL_TYPES = ["Food", "Merchandise", "Service"];
+const STALL_TYPES = [
+  "clothes",
+  "food",
+  "crafts",
+  "produce",
+  "electronics",
+  "services",
+  "other",
+];
 
 interface UserFormProps {
   marketId: string;

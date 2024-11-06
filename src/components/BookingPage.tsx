@@ -192,6 +192,7 @@ const BookingPage: React.FC = () => {
 
       if (response.status === 200 && Array.isArray(response.data.data)) {
         setBookings(response.data.data);
+
         // Update the timestamp when new data is received
         setLastUpdated(moment().format("MMM D, YYYY HH:mm"));
       } else {
@@ -620,9 +621,17 @@ const BookingPage: React.FC = () => {
                                   </Text>
                                 </Td>
                                 <Td>
-                                  {moment(booking.created_at).format(
-                                    "MMM D, YYYY HH:mm"
-                                  )}
+                                  {booking.created_at
+                                    ? `${new Date(
+                                        booking.created_at
+                                      ).toLocaleString("en-US", {
+                                        month: "short",
+                                        day: "numeric",
+                                        year: "numeric",
+                                      })} ${booking.created_at
+                                        .split("T")[1]
+                                        .substring(0, 5)}`
+                                    : "N/A"}
                                 </Td>
                               </Tr>
                             );

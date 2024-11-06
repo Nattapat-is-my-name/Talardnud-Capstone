@@ -204,7 +204,7 @@ const StallCard: React.FC<StallCardProps> = ({
             </Tag>
             <Tag size="lg" variant="subtle" colorScheme="green">
               <TagLeftIcon as={FaDollarSign} />
-              <Text>${slot.price}</Text>
+              <Text>{slot.price}</Text>
             </Tag>
           </Grid>
 
@@ -308,7 +308,6 @@ const StallCard: React.FC<StallCardProps> = ({
               <FormControl>
                 <FormLabel>Price</FormLabel>
                 <InputGroup size="lg">
-                  <InputLeftAddon children="$" />
                   <Input
                     name="price"
                     type="number"

@@ -443,7 +443,7 @@ const GeneratedZonesPage: React.FC = () => {
                 <Td fontWeight="medium">{slot.name}</Td>
                 <Td>{slot.zone}</Td>
                 <Td>{`${slot.width} × ${slot.height}`}</Td>
-                <Td>${slot.price}</Td>
+                <Td>฿{slot.price}</Td>
                 <Td>
                   <Badge colorScheme="purple" variant="subtle">
                     {slot.category}
