@@ -70,7 +70,6 @@ interface ApiResponse {
   };
 }
 
-// In useDashboardData hook
 const useDashboardData = (marketId: string | undefined) => {
   const { token, isAuthenticated } = useAuth();
   const [data, setData] = useState<EntitiesMarketDashboardStats[]>([]);
@@ -132,7 +131,6 @@ const useDashboardData = (marketId: string | undefined) => {
   return { data, isLoading, error };
 };
 
-// Stat Card Component
 interface StatCardProps {
   label: string;
   value: number | string;
@@ -231,6 +229,16 @@ const ReportPage: React.FC = () => {
     0
   );
 
+  // Calculate total confirmed and cancelled bookings
+  const totalConfirmedBookings = data.reduce(
+    (acc, stat) => acc + (stat.total_confirm_bookings ?? 0),
+    0
+  );
+  const totalCancelledBookings = data.reduce(
+    (acc, stat) => acc + (stat.total_cancel_bookings ?? 0),
+    0
+  );
+
   // Calculate average occupancy by summing all occupancy rates and dividing by the number of stats
   const totalOccupancy = data.reduce(
     (acc, stat) => acc + (stat.occupancy_rate ?? 0),
@@ -299,14 +307,12 @@ const ReportPage: React.FC = () => {
   };
 
   // Prepare data for charts
-  const chartData: ChartDataPoint[] = data
-    .map((stat) => ({
-      date: stat.date?.split("T")[0] ?? "",
-      bookings: stat.total_bookings ?? 0,
-      revenue: stat.total_revenue ?? 0,
-      occupancy: stat.occupancy_rate ?? 0,
-    }))
-    .reverse();
+  const chartData: ChartDataPoint[] = data.map((stat) => ({
+    date: stat.date?.split("T")[0] ?? "",
+    bookings: stat.total_bookings ?? 0,
+    revenue: stat.total_revenue ?? 0,
+    occupancy: stat.occupancy_rate ?? 0,
+  }));
 
   const bookingStatusData = [
     {
@@ -396,14 +402,6 @@ const ReportPage: React.FC = () => {
                   dot={{ fill: COLORS[0] }}
                   name="Total Bookings"
                 />
-                <Line
-                  type="monotone"
-                  dataKey="occupancy"
-                  stroke={COLORS[1]}
-                  strokeWidth={2}
-                  dot={{ fill: COLORS[1] }}
-                  name="Occupancy %"
-                />
               </LineChart>
             </ResponsiveContainer>
           </Box>
@@ -479,29 +477,36 @@ const ReportPage: React.FC = () => {
         </ChartCard>
 
         <SimpleGrid columns={1} spacing={4}>
-          {Object.entries({
-            "Pending Bookings": stats.bookingStatus.pending,
-            "Confirmed Bookings": stats.bookingStatus.confirmed,
-            "Cancelled Bookings": stats.bookingStatus.cancelled,
-          }).map(([label, value]) => (
-            <Card
-              key={label}
-              bg={"white"}
-              borderWidth="1px"
-              borderColor={"gray.200"}
-              shadow={"sm"}
-              borderRadius="xl"
-            >
-              <CardBody>
-                <Stat>
-                  <StatLabel color="gray.500">{label}</StatLabel>
-                  <StatNumber fontSize="2xl">{value}</StatNumber>
-                </Stat>
-              </CardBody>
-            </Card>
-          ))}
+          <Card
+            bg={"white"}
+            borderWidth="1px"
+            borderColor={"gray.200"}
+            shadow={"sm"}
+            borderRadius="xl"
+          >
+            <CardBody>
+              <Stat>
+                <StatLabel color="gray.500">Total Confirmed Bookings</StatLabel>
+                <StatNumber fontSize="2xl">{totalConfirmedBookings}</StatNumber>
+              </Stat>
+            </CardBody>
+          </Card>
+          <Card
+            bg={"white"}
+            borderWidth="1px"
+            borderColor={"gray.200"}
+            shadow={"sm"}
+            borderRadius="xl"
+          >
+            <CardBody>
+              <Stat>
+                <StatLabel color="gray.500">Total Cancelled Bookings</StatLabel>
+                <StatNumber fontSize="2xl">{totalCancelledBookings}</StatNumber>
+              </Stat>
+            </CardBody>
+          </Card>
         </SimpleGrid>
-      </SimpleGrid>{" "}
+      </SimpleGrid>
     </Container>
   );
 };

@@ -19,7 +19,7 @@ import type { Configuration } from './configuration';
 import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
 import globalAxios from 'axios';
 
-export const BASE_PATH = "http://api.talardnad.com/api/v1".replace(/\/+$/, "");
+export const BASE_PATH ="http://127.0.0.1:3000/api/v1".replace(/\/+$/, "");
 
 /**
  *
