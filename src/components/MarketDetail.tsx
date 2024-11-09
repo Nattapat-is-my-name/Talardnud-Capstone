@@ -32,6 +32,11 @@ import {
   ModalContent,
   ModalOverlay,
   Tooltip,
+  Stat,
+  StatLabel,
+  StatNumber,
+  HStack,
+  StackDivider,
 } from "@chakra-ui/react";
 
 import {
@@ -41,6 +46,10 @@ import {
   FaPlus,
   FaArrowLeft,
   FaExpand,
+  FaDollarSign,
+  FaRuler,
+  FaTag,
+  FaUser,
 } from "react-icons/fa";
 import { MdOutlineAnalytics } from "react-icons/md";
 import { useAuth } from "../contexts/AuthContext";
@@ -502,69 +511,182 @@ const MarketDetail: React.FC = () => {
                     selectedZone ? zoneName === selectedZone : true
                   )
                   .map(([zoneName, slots]) => (
-                    <Card key={zoneName} bg={cardBgColor} shadow="md" mb={4}>
-                      <CardHeader>
-                        <Flex justify="space-between" align="center">
-                          <Heading as="h3" size="lg">
-                            Zone {zoneName}
-                          </Heading>
-                          <Text>
-                            Available:{" "}
-                            {
-                              slots.filter(
-                                (slot) => slot.status === "available"
-                              ).length
-                            }{" "}
-                            / Booked:{" "}
-                            {
-                              slots.filter((slot) => slot.status === "booked")
-                                .length
-                            }{" "}
-                            / Total: {slots.length}
-                          </Text>
-                        </Flex>
+                    <Card
+                      key={zoneName}
+                      bg={cardBgColor}
+                      shadow="lg"
+                      mb={6}
+                      borderWidth="1px"
+                      borderColor="gray.200"
+                      borderRadius="xl"
+                    >
+                      <CardHeader
+                        bg="gray.50"
+                        borderBottomWidth="1px"
+                        borderColor="gray.200"
+                        py={4}
+                      >
+                        <Stack
+                          direction={["column", "row"]}
+                          justify="space-between"
+                          align="center"
+                          spacing={4}
+                        >
+                          {/* Zone Title */}
+                          <HStack>
+                            <Box bg="blue.50" p={2} borderRadius="md">
+                              <Icon
+                                as={FaMapMarkerAlt}
+                                color="blue.500"
+                                boxSize={5}
+                              />
+                            </Box>
+                            <Heading as="h3" size="lg">
+                              Zone {zoneName}
+                            </Heading>
+                          </HStack>
+
+                          {/* Stats */}
+                          <HStack
+                            spacing={8}
+                            p={3}
+                            bg="white"
+                            borderRadius="lg"
+                            shadow="sm"
+                            divider={<StackDivider borderColor="gray.200" />}
+                          >
+                            <Stat size="sm" minW="120px">
+                              <StatLabel color="gray.500">Available</StatLabel>
+                              <StatNumber color="green.500">
+                                {
+                                  slots.filter(
+                                    (slot) => slot.status === "available"
+                                  ).length
+                                }
+                              </StatNumber>
+                            </Stat>
+                            <Stat size="sm" minW="120px">
+                              <StatLabel color="gray.500">Booked</StatLabel>
+                              <StatNumber color="red.500">
+                                {
+                                  slots.filter(
+                                    (slot) => slot.status === "booked"
+                                  ).length
+                                }
+                              </StatNumber>
+                            </Stat>
+                            <Stat size="sm" minW="120px">
+                              <StatLabel color="gray.500">Total</StatLabel>
+                              <StatNumber>{slots.length}</StatNumber>
+                            </Stat>
+                          </HStack>
+                        </Stack>
                       </CardHeader>
-                      <CardBody>
-                        <SimpleGrid columns={[1, 2, 3, 4]} spacing={8}>
+
+                      <CardBody py={6}>
+                        <SimpleGrid columns={[1, 2, 3, 4]} spacing={6}>
                           {slots.map((slot, index) => (
                             <motion.div
                               key={index}
                               whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
                             >
                               <Box
                                 borderWidth="1px"
+                                borderColor="gray.200"
                                 borderRadius="lg"
-                                p={4}
-                                boxShadow="md"
-                                bg={bgColor}
+                                bg="white"
+                                overflow="hidden"
+                                transition="all 0.2s"
+                                _hover={{
+                                  shadow: "md",
+                                  borderColor: "blue.200",
+                                }}
                               >
-                                <Heading as="h4" size="md" mb={2}>
-                                  Slot {slot.name}
-                                </Heading>
-                                <VStack align="start" spacing={2}>
-                                  <Text>
-                                    <strong>Width:</strong> {slot.width} meters
-                                  </Text>
-                                  <Text>
-                                    <strong>Height:</strong> {slot.height}{" "}
-                                    meters
-                                  </Text>
-                                  <Text>
-                                    <strong>Category:</strong> {slot.category}
-                                  </Text>
-                                  <Text>
-                                    <strong>Price:</strong> ${slot.price}
-                                  </Text>
+                                {/* Slot Header */}
+                                <Box
+                                  p={4}
+                                  borderBottomWidth="1px"
+                                  borderColor="gray.100"
+                                  bg="gray.50"
+                                >
+                                  <Flex justify="space-between" align="center">
+                                    <HStack>
+                                      <Box
+                                        bg={
+                                          slot.status === "available"
+                                            ? "green.50"
+                                            : "red.50"
+                                        }
+                                        p={2}
+                                        borderRadius="md"
+                                      >
+                                        <Text fontWeight="600">
+                                          {slot.name}
+                                        </Text>
+                                      </Box>
+                                    </HStack>
+                                    <Badge
+                                      colorScheme={
+                                        slot.status === "available"
+                                          ? "green"
+                                          : "red"
+                                      }
+                                      variant="subtle"
+                                      px={2}
+                                      py={1}
+                                      borderRadius="md"
+                                    >
+                                      {slot.status === "booked"
+                                        ? "BOOK"
+                                        : slot.status}
+                                    </Badge>
+                                  </Flex>
+                                </Box>
 
-                                  <Badge
-                                    colorScheme={
-                                      slot.status === "available"
-                                        ? "green"
-                                        : "red"
-                                    }
-                                  >
-                                    {slot.status}
-                                  </Badge>
+                                {/* Slot Details */}
+                                <VStack align="stretch" p={4} spacing={3}>
+                                  <HStack justify="space-between">
+                                    <Text fontSize="sm" color="gray.500">
+                                      Dimensions
+                                    </Text>
+                                    <Text fontSize="sm" fontWeight="500">
+                                      {slot.width}m × {slot.height}m
+                                    </Text>
+                                  </HStack>
+
+                                  <HStack justify="space-between">
+                                    <Text fontSize="sm" color="gray.500">
+                                      Category
+                                    </Text>
+                                    <Text fontSize="sm" fontWeight="500">
+                                      {slot.category}
+                                    </Text>
+                                  </HStack>
+
+                                  <HStack justify="space-between">
+                                    <Text fontSize="sm" color="gray.500">
+                                      Price
+                                    </Text>
+                                    <Text
+                                      fontSize="sm"
+                                      fontWeight="600"
+                                      color="blue.500"
+                                    >
+                                      ฿{slot.price}
+                                    </Text>
+                                  </HStack>
+
+                                  {slot.Booker && (
+                                    <HStack justify="space-between">
+                                      <Text fontSize="sm" color="gray.500">
+                                        Booked By
+                                      </Text>
+                                      <Text fontSize="sm" fontWeight="500">
+                                        {slot.Booker}
+                                      </Text>
+                                    </HStack>
+                                  )}
                                 </VStack>
                               </Box>
                             </motion.div>
