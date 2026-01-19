@@ -1,79 +1,72 @@
-import React, { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import {
-  Box,
-  Heading,
+  AddIcon,
+  CalendarIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  DeleteIcon,
+  EditIcon,
+} from "@chakra-ui/icons";
+import {
   Alert,
-  AlertIcon,
-  useToast,
-  VStack,
-  Button,
-  Spinner,
-  Flex,
-  Grid,
-  Container,
-  Select,
-  AlertTitle,
   AlertDescription,
-  Icon,
+  AlertIcon,
+  AlertTitle,
+  Badge,
+  Box,
+  Button,
   Card,
   CardBody,
-  Badge,
+  Container,
+  Flex,
+  Heading,
   HStack,
-  Tab,
-  Tabs,
-  TabList,
-  TabPanel,
-  TabPanels,
-  SimpleGrid,
-  Text,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
+  Icon,
   IconButton,
-  Divider,
-  Stack,
-  useColorModeValue,
-  MenuDivider,
-} from "@chakra-ui/react";
-import {
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
   Input,
   InputGroup,
   InputLeftElement,
+  Menu,
+  MenuButton,
+  MenuDivider,
+  MenuItem,
+  MenuList,
+  Select,
+  SimpleGrid,
+  Spinner,
+  Stack,
+  Tab,
+  Table,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+  useColorModeValue,
+  useToast,
+  VStack
 } from "@chakra-ui/react";
 import moment from "moment";
-import {
-  MarketApi,
-  Configuration,
-  SlotsApi,
-  EntitiesSlot,
-  DtosLayoutRequest,
-} from "../api";
-import { useAuth } from "../contexts/AuthContext";
-import { useLocation, useNavigate } from "react-router-dom";
-import { Slot } from "../types";
+import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import {
   FaArrowLeft,
-  FaFileCsv,
-  FaFilter,
   FaPlus,
-  FaPrint,
-  FaSearch,
+  FaSearch
 } from "react-icons/fa";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
-  EditIcon,
-  DeleteIcon,
-  CalendarIcon,
-  AddIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-} from "@chakra-ui/icons";
+  Configuration,
+  DtosLayoutRequest,
+  EntitiesSlot,
+  MarketApi,
+  SlotsApi,
+} from "../api";
+import { useAuth } from "../contexts/AuthContext";
+import { Slot } from "../types";
 
 const LazyZoneCard = lazy(() => import("../components/ZoneCard"));
 const LazyEditStallModal = lazy(() => import("../components/EditStallModal"));

@@ -1,6 +1,5 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { Zone } from "../types";
-import { useLocation } from "react-router-dom";
 interface MarketContextType {
   zones: Zone[];
   setZones: React.Dispatch<React.SetStateAction<Zone[]>>;

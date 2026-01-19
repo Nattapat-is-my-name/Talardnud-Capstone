@@ -1,68 +1,63 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { MarketApi, Configuration, EntitiesMarket, EntitiesSlot } from "../api";
 import {
-  Box,
-  Heading,
-  VStack,
-  Text,
-  Spinner,
   Alert,
+  AlertDescription,
   AlertIcon,
   AlertTitle,
-  AlertDescription,
-  Code,
-  Button,
-  SimpleGrid,
-  Container,
-  Flex,
   Badge,
-  useColorModeValue,
+  Box,
+  BoxProps,
+  Button,
   Card,
   CardBody,
   CardHeader,
+  Code,
+  Container,
+  Flex,
+  Heading,
+  HStack,
   Icon,
-  Stack,
   Image,
-  BoxProps,
-  Select,
   Modal,
   ModalBody,
   ModalCloseButton,
   ModalContent,
   ModalOverlay,
+  Select,
+  SimpleGrid,
+  Spinner,
+  Stack,
+  Text,
   Tooltip,
-  Stat,
-  StatLabel,
-  StatNumber,
-  HStack,
-  StackDivider,
+  useColorModeValue,
+  VStack,
   Wrap,
-  WrapItem,
+  WrapItem
 } from "@chakra-ui/react";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Configuration, EntitiesMarket, EntitiesSlot, MarketApi } from "../api";
 
-import {
-  FaMapMarkerAlt,
-  FaPhone,
-  FaClock,
-  FaPlus,
-  FaArrowLeft,
-  FaExpand,
-  FaDollarSign,
-  FaRuler,
-  FaTag,
-  FaUser,
-  FaLock,
-  FaShoppingCart,
-  FaUnlock,
-} from "react-icons/fa";
-import { MdOutlineAnalytics } from "react-icons/md";
-import { useAuth } from "../contexts/AuthContext";
+import { EditIcon } from "@chakra-ui/icons";
 import { isValidMotionProp, motion, MotionProps } from "framer-motion";
 import moment, { Moment } from "moment";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
-import { EditIcon } from "@chakra-ui/icons";
+import {
+  FaArrowLeft,
+  FaClock,
+  FaDollarSign,
+  FaExpand,
+  FaLock,
+  FaMapMarkerAlt,
+  FaPhone,
+  FaPlus,
+  FaRuler,
+  FaTag,
+  FaUnlock,
+  FaUser
+} from "react-icons/fa";
+import { MdOutlineAnalytics } from "react-icons/md";
+import { useAuth } from "../contexts/AuthContext";
 
 export type MotionBoxProps = BoxProps & MotionProps;
 
@@ -90,14 +85,11 @@ const MarketDetail: React.FC = () => {
   // Date filter states
   const [startDate, setStartDate] = useState<Moment | null>(null);
   const [endDate, setEndDate] = useState<Moment | null>(null);
-  const [focusedInput, setFocusedInput] = useState<
-    "startDate" | "endDate" | null
-  >(null);
+
 
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
-  const bgColor = useColorModeValue("gray.50", "gray.700");
   const cardBgColor = useColorModeValue("white", "gray.800");
 
   useEffect(() => {
@@ -177,7 +169,6 @@ const MarketDetail: React.FC = () => {
   // Find the closest upcoming date
   const today = moment();
 
-  const hasSlots = market?.slots && market.slots.length > 0;
   const allDates = Object.keys(groupedSlots)
     .filter((date) => {
       const slotDate = moment(date);

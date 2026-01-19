@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  frontend-prod:
+    container_name: talardnad-frontend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    restart: always
+    networks:
+      - app-network
+
+  frontend-dev:
+    container_name: talardnad-dev
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "8080:8080"
+    command: sh -c "npm install --legacy-peer-deps && npm start"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

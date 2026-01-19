@@ -1,30 +1,28 @@
-import React from "react";
-import {
-  Box,
-  Flex,
-  Link,
-  Button,
-  useColorModeValue,
-  Container,
-  HStack,
-  Icon,
-  Text,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Avatar,
-} from "@chakra-ui/react";
-import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
 import { ChevronDownIcon, ExternalLinkIcon } from "@chakra-ui/icons";
 import {
+  Box,
+  Button,
+  Container,
+  Flex,
+  HStack,
+  Icon,
+  Link,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Text,
+  useColorModeValue
+} from "@chakra-ui/react";
+import React from "react";
+import {
   FiHome,
-  FiShoppingBag,
   FiLogOut,
-  FiUser,
-  FiBook,
+  FiShoppingBag,
+  FiUser
 } from "react-icons/fi";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, logout } = useAuth();

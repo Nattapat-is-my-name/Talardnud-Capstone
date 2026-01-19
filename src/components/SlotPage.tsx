@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { SlotsApi, Configuration, EntitiesSlot } from "../api";
 import {
-  Box,
-  Heading,
-  Text,
-  VStack,
-  Spinner,
   Alert,
+  AlertDescription,
   AlertIcon,
   AlertTitle,
-  AlertDescription,
-  SimpleGrid,
+  Box,
   Button,
+  Heading,
+  SimpleGrid,
+  Spinner,
+  Text,
+  VStack,
 } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Configuration, EntitiesSlot, SlotsApi } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 
 const SlotPage = () => {

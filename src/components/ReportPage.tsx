@@ -1,51 +1,50 @@
-import React, { useState, useEffect } from "react";
 import {
-  Box,
-  Text,
-  Heading,
-  SimpleGrid,
-  Container,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
-  StatArrow,
-  Stack,
-  Flex,
-  Spinner,
   Alert,
+  AlertDescription,
   AlertIcon,
   AlertTitle,
-  AlertDescription,
+  Box,
+  Button,
   Card,
   CardBody,
+  Container,
+  Flex,
+  Heading,
   Icon,
-  Button,
-  useColorModeValue,
+  SimpleGrid,
+  Spinner,
+  Stat,
+  StatArrow,
+  StatHelpText,
+  StatLabel,
+  StatNumber,
+  Text,
+  useColorModeValue
 } from "@chakra-ui/react";
+import React, { useEffect, useState } from "react";
+import { FaArrowLeft } from "react-icons/fa";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
-  LineChart,
-  Line,
-  BarChart,
   Bar,
-  PieChart,
-  Pie,
-  XAxis,
-  YAxis,
+  BarChart,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
   Cell,
   Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import {
   Configuration,
   DashboardApi,
   EntitiesMarketDashboardStats,
 } from "../api";
-import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { FaArrowLeft } from "react-icons/fa";
 
 const COLORS = [
   "#8884d8",

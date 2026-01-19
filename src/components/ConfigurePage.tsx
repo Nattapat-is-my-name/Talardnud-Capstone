@@ -1,24 +1,24 @@
-import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
-  Heading,
+  Button,
+  Container,
   Grid,
   GridItem,
+  Heading,
+  Icon,
   Text,
-  Container,
   VStack,
   useColorModeValue,
   useToast,
-  Button,
-  Icon,
 } from "@chakra-ui/react";
+import React, { useCallback, useEffect, useState } from "react";
+import { FaArrowLeft } from "react-icons/fa";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Configuration, DtosMarketEditRequest, MarketApi } from "../api";
+import { useAuth } from "../contexts/AuthContext";
+import { useMarket } from "../contexts/MarketProvider";
 import ImageUpload from "./ImageUpload";
 import UserForm from "./UserForm";
-import { useMarket } from "../contexts/MarketProvider";
-import { useLocation, useNavigate } from "react-router-dom";
-import { MarketApi, Configuration, DtosMarketEditRequest } from "../api";
-import { useAuth } from "../contexts/AuthContext";
-import { FaArrowLeft } from "react-icons/fa";
 
 const ConfigurePage: React.FC = () => {
   const location = useLocation();
@@ -26,7 +26,7 @@ const ConfigurePage: React.FC = () => {
   const toast = useToast();
   const { token } = useAuth();
   const marketId = location.state?.marketId;
-  const { selectedImage, setSelectedImage, zones } = useMarket();
+  const { zones } = useMarket();
   const [layoutImage, setLayoutImage] = useState<string | undefined>(undefined);
   const [marketDetails, setMarketDetails] =
     useState<DtosMarketEditRequest | null>(null);

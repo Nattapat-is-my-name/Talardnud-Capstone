@@ -1,34 +1,34 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
+  Alert,
+  AlertIcon,
   Box,
   Button,
+  Divider,
+  Flex,
   FormControl,
   FormLabel,
+  Heading,
   Input,
-  VStack,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
   Select,
   Text,
-  Alert,
-  AlertIcon,
-  useToast,
-  Heading,
-  Divider,
-  Flex,
-  useColorModeValue,
   Tooltip,
+  useColorModeValue,
+  useToast,
+  VStack,
 } from "@chakra-ui/react";
+import React, { useCallback, useEffect, useState } from "react";
 import DatePicker, { DateObject } from "react-multi-date-picker";
-import { Zone, Stall } from "../types";
-import { createNewStall, generateZonesFromInput } from "../utils";
-import { useMarket } from "../contexts/MarketProvider";
-import { SlotsApi, Configuration, DtosLayoutRequest } from "../api";
+import { useNavigate } from "react-router-dom";
+import { Configuration, DtosLayoutRequest, SlotsApi } from "../api";
 import { useAuth } from "../contexts/AuthContext";
+import { useMarket } from "../contexts/MarketProvider";
+import { Stall } from "../types";
+import { createNewStall, generateZonesFromInput } from "../utils";
 
 const STALL_TYPES = [
   "clothes",

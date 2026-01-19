@@ -1,47 +1,46 @@
-import React, { useState, useEffect } from "react";
 import {
-  MarketApi,
-  Configuration,
-  EntitiesMarket,
-  DtosMarketRequest,
-} from "../api";
-import {
-  Box,
-  Heading,
-  Text,
-  VStack,
-  Spinner,
   Alert,
+  AlertDescription,
   AlertIcon,
   AlertTitle,
-  AlertDescription,
-  Image,
+  Box,
   Button,
-  SimpleGrid,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  Grid,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  useDisclosure,
-  Input,
+  Divider,
+  Flex,
   FormControl,
   FormLabel,
-  Textarea,
-  Link,
+  Grid,
+  Heading,
   HStack,
-  Divider,
-  useToast,
   Icon,
-  Flex,
+  Image,
+  Input,
+  Link,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  SimpleGrid,
+  Spinner,
+  Text,
+  Textarea,
+  useDisclosure,
+  useToast,
+  VStack,
 } from "@chakra-ui/react";
-import { AddIcon } from "@chakra-ui/icons";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import React, { useEffect, useState } from "react";
 import { FaCloudUploadAlt, FaImage, FaPlus } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import {
+  Configuration,
+  DtosMarketRequest,
+  EntitiesMarket,
+  MarketApi,
+} from "../api";
+import { useAuth } from "../contexts/AuthContext";
 
 const Market = () => {
   const navigate = useNavigate();

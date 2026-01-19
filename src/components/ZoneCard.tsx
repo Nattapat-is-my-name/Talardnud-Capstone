@@ -61,7 +61,7 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
                 <Badge
                   colorScheme={slot.status === "available" ? "green" : "red"}
                 >
-                  {slot.status == "booked" ? "Book" : slot.status}
+                  {slot.status === "booked" ? "Book" : slot.status}
                 </Badge>
                 <Button
                   size="sm"

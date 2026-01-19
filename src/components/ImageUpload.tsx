@@ -1,24 +1,24 @@
-import React, { useState, useCallback } from "react";
 import {
   Box,
-  Text,
-  Image,
-  useDisclosure,
-  VStack,
-  Icon,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalBody,
-  ModalCloseButton,
-  useColorModeValue,
   Center,
   Flex,
+  Icon,
   IconButton,
+  Image,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalOverlay,
+  Text,
   Tooltip,
+  useColorModeValue,
+  useDisclosure,
   useToast,
+  VStack,
 } from "@chakra-ui/react";
-import { FaCloudUploadAlt, FaTrash, FaExpand } from "react-icons/fa";
+import React, { useCallback, useState } from "react";
+import { FaCloudUploadAlt, FaExpand, FaTrash } from "react-icons/fa";
 
 interface ImageUploadProps {
   selectedImage: string | undefined;

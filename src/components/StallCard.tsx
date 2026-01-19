@@ -1,47 +1,43 @@
-import React, { useState } from "react";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
-  Box,
-  VStack,
-  HStack,
-  Input,
-  Button,
-  Text,
-  useToast,
-  Select,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalCloseButton,
-  FormControl,
-  FormLabel,
-  InputGroup,
-  InputLeftAddon,
-  Divider,
-  Tooltip,
   Badge,
+  Button,
   Card,
   CardBody,
+  Divider,
+  Flex,
+  FormControl,
+  FormLabel,
   Grid,
-  GridItem,
+  HStack,
   IconButton,
+  Input,
+  InputGroup,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Select,
   Tag,
   TagLeftIcon,
-  Flex,
-  Icon,
+  Text,
+  Tooltip,
+  useToast,
+  VStack
 } from "@chakra-ui/react";
-import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
-import { Slot } from "../types";
+import React, { useState } from "react";
+import { FaDollarSign, FaRuler, FaTag } from "react-icons/fa";
 import {
-  SlotsApi,
   Configuration,
   DtosSlotUpdateDTO,
-  EntitiesSlotStatus,
   EntitiesCategory,
+  EntitiesSlotStatus,
+  SlotsApi,
 } from "../api";
-import { FaDollarSign, FaRuler, FaTag } from "react-icons/fa";
+import { Slot } from "../types";
 
 interface StallCardProps {
   slot: Slot;

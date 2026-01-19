@@ -1,5 +1,5 @@
+import { Box, Button, Heading, Text, VStack } from "@chakra-ui/react";
 import React from "react";
-import { Box, Heading, Text, Button, VStack, Image } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 
 const LandingPage: React.FC = () => {

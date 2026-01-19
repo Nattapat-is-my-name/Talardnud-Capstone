@@ -1,30 +1,28 @@
-import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
+  Button,
+  Center,
   Container,
-  Heading,
-  VStack,
   Grid,
   GridItem,
-  useToast,
-  useColorModeValue,
-  Button,
+  Heading,
   Icon,
-  Center,
   Spinner,
-  Text,
+  useColorModeValue,
+  useToast,
+  VStack
 } from "@chakra-ui/react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useState } from "react";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  MarketApi,
   Configuration,
   DtosMarketEditRequest,
-  EntitiesMarket,
+  MarketApi
 } from "../api";
-import MarketProfileForm from "./MarketProfileForm";
-import ImageUpload from "./ImageUpload";
 import { useAuth } from "../contexts/AuthContext";
-import { FaArrowLeft } from "react-icons/fa";
+import ImageUpload from "./ImageUpload";
+import MarketProfileForm from "./MarketProfileForm";
 
 const EditMarketPage: React.FC = () => {
   const { marketId } = useParams<{ marketId: string }>();
